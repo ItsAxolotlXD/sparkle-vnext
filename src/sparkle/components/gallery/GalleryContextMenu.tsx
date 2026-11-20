@@ -1,0 +1,158 @@
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
+import { MousePointer2, Star, Share2, Save } from 'lucide-react';
+import { contextMenuMotionProps, flyoutPanelClassName, flyoutPanelStyle } from '../FlyoutDropdown';
+import { FluentRenameIcon, FluentFolderArrowLeftIcon, FluentDeleteIcon, FluentCopyIcon } from '../FluentIcons';
+
+export type GalleryContextAction = 'open' | 'favorite' | 'rename' | 'share' | 'duplicate' | 'move' | 'save' | 'delete';
+
+interface GalleryContextMenuProps {
+  x: number;
+  y: number;
+  isFavorite: boolean;
+  onAction: (action: GalleryContextAction) => void;
+  onClose: () => void;
+}
+
+interface MenuEntry {
+  action: GalleryContextAction;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  danger?: boolean;
+}
+
+const VIEWPORT_MARGIN = 8;
+
+export const GalleryContextMenu: React.FC<GalleryContextMenuProps> = ({ x, y, isFavorite, onAction, onClose }) => {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState(() => {
+    const maxLeft = (typeof window !== 'undefined' ? window.innerWidth : 800) - 240;
+    const maxTop = (typeof window !== 'undefined' ? window.innerHeight : 600) - 340;
+    return {
+      left: Math.max(VIEWPORT_MARGIN, Math.min(x, maxLeft)),
+      top: Math.max(VIEWPORT_MARGIN, Math.min(y, maxTop)),
+    };
+  });
+
+  const primary: MenuEntry[] = [
+    { action: 'open', label: 'Open', icon: MousePointer2 },
+    { action: 'favorite', label: isFavorite ? 'Remove from favorites' : 'Add to favorites', icon: Star },
+    { action: 'rename', label: 'Rename', icon: FluentRenameIcon },
+    { action: 'share', label: 'Share', icon: Share2 },
+    { action: 'duplicate', label: 'Duplicate', icon: FluentCopyIcon },
+    { action: 'move', label: 'Move into a folder', icon: FluentFolderArrowLeftIcon },
+  ];
+  const secondary: MenuEntry[] = [
+    { action: 'save', label: 'Save to device', icon: Save },
+    { action: 'delete', label: 'Delete', icon: FluentDeleteIcon, danger: true },
+  ];
+
+  useLayoutEffect(() => {
+    const el = menuRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    const safeHeight = height > 60 ? height : 340;
+    const safeWidth = width > 60 ? width : 232;
+    const maxLeft = (typeof window !== 'undefined' ? window.innerWidth : 800) - safeWidth - VIEWPORT_MARGIN;
+    const maxTop = (typeof window !== 'undefined' ? window.innerHeight : 600) - safeHeight - VIEWPORT_MARGIN;
+    setPosition({
+      left: Math.max(VIEWPORT_MARGIN, Math.min(x, maxLeft)),
+      top: Math.max(VIEWPORT_MARGIN, Math.min(y, maxTop)),
+    });
+    el.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus({ preventScroll: true });
+  }, [x, y]);
+
+  useEffect(() => {
+    const handlePointerDown = (e: MouseEvent | PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const buttons: HTMLButtonElement[] = Array.from(
+          menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []
+        );
+        const idx = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        const next = e.key === 'ArrowDown' ? (idx + 1) % buttons.length : (idx - 1 + buttons.length) % buttons.length;
+        buttons[next]?.focus();
+      }
+    };
+
+    const timer = setTimeout(() => {
+      window.addEventListener('pointerdown', handlePointerDown);
+    }, 50);
+
+    window.addEventListener('keydown', handleKey);
+    window.addEventListener('resize', onClose);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKey);
+      window.removeEventListener('resize', onClose);
+    };
+  }, [onClose]);
+
+  const renderEntry = (entry: MenuEntry) => {
+    const Icon = entry.icon;
+    return (
+      <button
+        key={entry.action}
+        type="button"
+        role="menuitem"
+        onClick={() => onAction(entry.action)}
+        className={`w-full h-[36px] px-3 rounded-[6px] flex items-center gap-3 text-[13px] font-medium text-left outline-none transition-colors cursor-pointer hover:bg-black/[0.05] dark:hover:bg-white/[0.08] focus-visible:bg-black/[0.05] dark:focus-visible:bg-white/[0.08] active:bg-black/[0.08] dark:active:bg-white/[0.12] ${
+          entry.danger ? 'text-[#c42b1c] dark:text-[#ff99a4]' : 'text-[#111827] dark:text-white'
+        }`}
+      >
+        <Icon
+          className={`w-4 h-4 shrink-0 ${
+            entry.danger ? 'text-black dark:text-[#ff99a4]' : 'text-black dark:text-neutral-300'
+          }`}
+        />
+        <span className="truncate">{entry.label}</span>
+      </button>
+    );
+  };
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      style={{
+        position: 'fixed',
+        left: position.left,
+        top: position.top,
+        zIndex: 2147483647,
+        overflow: 'clip',
+      }}
+      className="fluent-context-menu-wrapper pointer-events-auto"
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <motion.div {...contextMenuMotionProps}>
+        <div
+          role="menu"
+          aria-label="File actions"
+          style={flyoutPanelStyle}
+          className={`w-[232px] p-1.5 ${flyoutPanelClassName} fluent-context-menu shadow-none`}
+        >
+          <div className="w-full flex flex-col space-y-0.5">
+            {primary.map((entry) => renderEntry(entry))}
+            <div className="h-px bg-black/10 dark:bg-white/10 my-1 mx-1" />
+            {secondary.map((entry) => renderEntry(entry))}
+          </div>
+        </div>
+      </motion.div>
+    </div>,
+    document.body
+  );
+};

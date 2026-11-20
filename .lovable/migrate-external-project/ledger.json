@@ -1,0 +1,131 @@
+{
+  "source": "code-archive (sparkle-2611-main.zip, Google AI Studio Vite + React SPA)",
+  "capabilities": [
+    {
+      "capability": "code",
+      "source": "src/ (App.tsx, 27 pages, ~70 components, hooks, utils)",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none — app runs in TanStack Start; screens load (home, feed, sign-in)"
+    },
+    {
+      "capability": "styles",
+      "source": "src/index.css (9.7k lines, Tailwind v4) + index.html boot script/fonts",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none — original stylesheet ported; two malformed selectors escaped"
+    },
+    {
+      "capability": "assets",
+      "source": "public/ (67MB: logos, icons, banners, 4K wallpapers, boot video, sound)",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none — 10 large media on Lovable CDN, small files in public/, unreferenced originals skipped"
+    },
+    {
+      "capability": "schema",
+      "source": "none (no tables; app data is browser localStorage/IndexedDB)",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "records",
+      "source": "none server-side; per-browser localStorage/IndexedDB stays on each device",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "auth",
+      "source": "Supabase Auth (email/password, Google, Apple, Microsoft OAuth) on /auth",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none — email/password, Google, Apple, Microsoft on Lovable Cloud; reset-password page added"
+    },
+    {
+      "capability": "auth identities (users)",
+      "source": "Source Supabase auth.users (no export attached)",
+      "outcome": "migrate",
+      "status": "pending",
+      "next_action": "Request user export (email + original id) after preview, then import"
+    },
+    {
+      "capability": "authorization",
+      "source": "none (session not used outside /auth)",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "uploaded file bytes",
+      "source": "none server-side (Gallery stores in browser IndexedDB)",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "microsoft sign-in",
+      "source": "Supabase azure provider",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none — managed Microsoft sign-in enabled in Lovable Cloud"
+    },
+    {
+      "capability": "AI (Gemini)",
+      "source": "@google/genai dependency + GEMINI_API_KEY in .env.example; no call sites",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none (unused)"
+    },
+    {
+      "capability": "express server",
+      "source": "express dependency, no server file",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none (unused)"
+    },
+    {
+      "capability": "external providers",
+      "source": "Client-side fetches: epg.io.vn EPG, weather API, HLS streams, Photopea/YouTube embeds",
+      "outcome": "preserve",
+      "status": "verified",
+      "next_action": "none — client-side calls kept; some third-party images block hotlinking as before"
+    },
+    {
+      "capability": "public endpoints/webhooks/schedules",
+      "source": "none",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "secrets",
+      "source": "VITE_SUPABASE_* (replaced by Cloud), GEMINI_API_KEY (unused), DISABLE_HMR (AI Studio platform)",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "metadata",
+      "source": "index.html title/description/og tags, favicon",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "cutover",
+      "source": "Old Supabase OAuth redirect URLs",
+      "outcome": "migrate",
+      "status": "pending",
+      "next_action": "After user import, users sign in on the Lovable app"
+    },
+    {
+      "capability": "verification",
+      "source": "-",
+      "outcome": "migrate",
+      "status": "pending",
+      "next_action": "Imported-user first login (verify email, set password) once users are imported"
+    }
+  ]
+}
