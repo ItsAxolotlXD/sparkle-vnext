@@ -111,13 +111,14 @@ export const DesktopSearchBox: React.FC<DesktopSearchBoxProps> = ({
       className="absolute left-1/2 -translate-x-1/2 z-[2] w-[min(560px,calc(100%-32px))] pointer-events-auto select-none"
     >
       <form
+        id="sparkle-desktop-search-box"
         onSubmit={handleSubmit}
         style={{
           backgroundColor: isLightMode ? "rgba(255, 255, 255, 0.92)" : "rgba(34, 38, 46, 0.88)",
           backdropFilter: "blur(28px) saturate(160%)",
           WebkitBackdropFilter: "blur(28px) saturate(160%)",
         }}
-        className="fluent-search-box h-[46px] sm:h-[48px] w-full rounded-full px-4 flex items-center gap-3 border border-black/[0.06] dark:border-white/[0.12] shadow-[0_8px_28px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.38)] transition-all focus-within:ring-2 focus-within:ring-[#0078d4]/30 dark:focus-within:ring-[#4cc2ff]/35"
+        className="h-[46px] sm:h-[48px] w-full rounded-full px-4 flex items-center gap-3 border border-black/[0.06] dark:border-white/[0.12] shadow-[0_8px_28px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.38)] transition-all focus-within:ring-2 focus-within:ring-[#0078d4]/30 dark:focus-within:ring-[#4cc2ff]/35"
       >
         {/* Left: Globe inside Magnifying Glass icon (matching Picture 2) */}
         <svg

@@ -537,6 +537,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       { id: 'page-file-explorer', title: 'File Explorer', subtitle: 'Switch page', keywords: 'file explorer files folders drives documents downloads pictures explorer tep tin thu muc', type: 'page', onSelect: () => navigate('/file-explorer') },
       { id: 'page-html-writer', title: 'HTML Writer', subtitle: 'Switch page', keywords: 'html writer code editor css js preview winui 3 lập trình web chạy thử html', type: 'page', onSelect: () => navigate('/html-writer') },
       { id: 'page-pc-settings', title: 'PC Settings', subtitle: 'Switch page', keywords: 'pc settings windows 11 system bluetooth network personalization windows update', type: 'page', onSelect: () => navigate('/pc-settings') },
+      { id: 'page-defender', title: 'Windows Security', subtitle: 'Switch page', keywords: 'windows security defender antivirus virus threat firewall smartscreen protection', type: 'page', onSelect: () => navigate('/defender') },
       { id: 'page-settings', title: 'Settings', subtitle: 'Switch page', keywords: 'cài đặt hệ thống settings preferences', type: 'page', onSelect: () => navigate('/settings') },
       // All Interactive System Settings & Action Toggles (Search & execute right on Search UI)
       {
@@ -1936,6 +1937,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                     if (currentRoute.startsWith('/file-explorer')) return 'Search File Explorer';
                     if (currentRoute.startsWith('/html-writer')) return 'Search HTML Writer';
                     if (currentRoute.startsWith('/pc-settings')) return 'Search PC Settings';
+                    if (currentRoute.startsWith('/defender')) return 'Search Windows Security';
                     if (currentRoute.startsWith('/settings')) return 'Search settings';
                     if (currentRoute.startsWith('/winui-3') || currentRoute.startsWith('/winui')) return 'Search WinUI 3 Gallery';
                     if (currentRoute.startsWith('/channels')) return 'Search Channels';

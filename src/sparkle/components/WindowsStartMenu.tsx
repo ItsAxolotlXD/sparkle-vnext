@@ -43,6 +43,7 @@ import {
   Fluent3DHtmlWriterIcon,
   Fluent3DPcSettingsIcon,
   Fluent3DFileExplorerIcon,
+  Fluent3DDefenderIcon,
 } from './Fluent3DIcons';
 import { FluentPersonFeedbackIcon, FluentSearchIcon } from './FluentIcons';
 import { useSettings, getTaskbarHeightPx, getWindowsUiScaleMultiplier, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
@@ -110,6 +111,7 @@ const START_APP_ICONS: Record<string, (sizeClass?: string) => React.ReactNode> =
   ),
   'app-discord': (cls = 'w-8 h-8') => <Fluent3DDiscordIcon className={cls} />,
   'app-pc-settings': (cls = 'w-8 h-8') => <Fluent3DPcSettingsIcon className={cls} />,
+  'app-defender': (cls = 'w-8 h-8') => <Fluent3DDefenderIcon className={cls} />,
   'app-settings': (cls = 'w-8 h-8') => <Fluent3DSettingsIcon className={cls} />,
   'app-insider': (cls = 'w-7 h-7') => (
     <div className={`${cls} rounded-[8px] bg-violet-500/15 flex items-center justify-center text-violet-500`}>

@@ -383,6 +383,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     tab.route.startsWith('/html-writer/') ||
     tab.route === '/pc-settings' ||
     tab.route.startsWith('/pc-settings/') ||
+    tab.route === '/defender' ||
+    tab.route.startsWith('/defender/') ||
     tab.route === '/file-explorer' ||
     tab.route.startsWith('/file-explorer/');
 
@@ -598,6 +600,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
                 tab.route.startsWith('/html-writer/') ||
                 tab.route === '/pc-settings' ||
                 tab.route.startsWith('/pc-settings/') ||
+                tab.route === '/defender' ||
+                tab.route.startsWith('/defender/') ||
                 tab.route === '/file-explorer' ||
                 tab.route.startsWith('/file-explorer/')
                   ? 'p-0 h-full'

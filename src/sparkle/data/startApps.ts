@@ -44,6 +44,12 @@ export const START_APPS: readonly StartAppDef[] = [
     route: '/pc-settings',
     keywords: 'pc settings windows 11 system bluetooth network personalization update',
   },
+  {
+    id: 'app-defender',
+    label: 'Windows Security',
+    route: '/defender',
+    keywords: 'windows security defender antivirus virus threat firewall smartscreen protection',
+  },
   { id: 'app-settings', label: 'Settings', route: '/settings', keywords: 'settings cai dat preferences' },
   {
     id: 'app-insider',

@@ -797,3 +797,53 @@ export const Fluent3DFileExplorerIcon: React.FC<Fluent3DIconProps> = ({ classNam
     />
   </div>
 );
+
+// 21. Windows Security (Defender) - 3D Fluent 4-Quadrant Blue Shield Icon
+export const Fluent3DDefenderIcon: React.FC<Fluent3DIconProps> = ({ className = 'w-5 h-5', style }) => (
+  <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={`fluent-3d-icon ${className} shrink-0`} style={style}>
+    <defs>
+      <linearGradient id="fl3d_def_tl" x1="4" y1="4" x2="16" y2="16" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#7AD8FF" />
+        <stop offset="100%" stopColor="#35B2F6" />
+      </linearGradient>
+      <linearGradient id="fl3d_def_tr" x1="16" y1="4" x2="28" y2="16" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#35B2F6" />
+        <stop offset="100%" stopColor="#0078D4" />
+      </linearGradient>
+      <linearGradient id="fl3d_def_bl" x1="4" y1="16" x2="16" y2="29" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#1B8CE2" />
+        <stop offset="100%" stopColor="#005FB8" />
+      </linearGradient>
+      <linearGradient id="fl3d_def_br" x1="16" y1="16" x2="28" y2="29" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#0066BE" />
+        <stop offset="100%" stopColor="#003E8A" />
+      </linearGradient>
+      <filter id="fl3d_def_shadow" x="-15%" y="-15%" width="130%" height="130%">
+        <feDropShadow dx="0" dy="1.4" stdDeviation="1.1" floodColor="#000" floodOpacity="0.26" />
+      </filter>
+    </defs>
+    <g filter="url(#fl3d_def_shadow)">
+      {/* Top-Left Quadrant */}
+      <path
+        d="M15.4 3.4C15.4 3.15 15.16 2.98 14.92 3.05C11.9 4.28 8.7 5.02 5.35 5.22C4.74 5.26 4.25 5.76 4.25 6.38V15.4H15.4V3.4Z"
+        fill="url(#fl3d_def_tl)"
+      />
+      {/* Top-Right Quadrant */}
+      <path
+        d="M16.6 3.4C16.6 3.15 16.84 2.98 17.08 3.05C20.1 4.28 23.3 5.02 26.65 5.22C27.26 5.26 27.75 5.76 27.75 6.38V15.4H16.6V3.4Z"
+        fill="url(#fl3d_def_tr)"
+      />
+      {/* Bottom-Left Quadrant */}
+      <path
+        d="M4.25 16.6V17.4C4.25 22.7 8.4 27.05 15.15 29.22C15.3 29.27 15.4 29.15 15.4 28.98V16.6H4.25Z"
+        fill="url(#fl3d_def_bl)"
+      />
+      {/* Bottom-Right Quadrant */}
+      <path
+        d="M16.6 16.6V28.98C16.6 29.15 16.7 29.27 16.85 29.22C23.6 27.05 27.75 22.7 27.75 17.4V16.6H16.6Z"
+        fill="url(#fl3d_def_br)"
+      />
+    </g>
+  </svg>
+);
+

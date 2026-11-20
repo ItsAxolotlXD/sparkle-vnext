@@ -1376,14 +1376,14 @@ html.light-mode [class*="search-box"] svg [fill="currentColor"] {
 }
 
 /* 3. Các input box / textarea độc lập (không nằm trong wrapper hộp search) */
-html.light-mode input:not(#settings-search-box input):not(#topbar-search-box input):not(#channels-search-box input):not(#immersive-search-capsule input):not(#spotlight-search-container input):not(#spotlight-search-box input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.search-box input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="color"]):not([type="file"]),
+html.light-mode input:not(#settings-search-box input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#channels-search-box input):not(#immersive-search-capsule input):not(#spotlight-search-container input):not(#spotlight-search-box input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.search-box input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="color"]):not([type="file"]),
 html.light-mode textarea {
   background-color: #fbfbfb !important;
   background: #fbfbfb !important;
   opacity: 1 !important;
 }
 
-html.light-mode input:not(#settings-search-box input):not(#topbar-search-box input):not(#channels-search-box input):not(#immersive-search-capsule input):not(#spotlight-search-container input):not(#spotlight-search-box input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.search-box input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="color"]):not([type="file"]):focus,
+html.light-mode input:not(#settings-search-box input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#channels-search-box input):not(#immersive-search-capsule input):not(#spotlight-search-container input):not(#spotlight-search-box input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.search-box input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="color"]):not([type="file"]):focus,
 html.light-mode textarea:focus {
   background-color: #ffffff !important;
   background: #ffffff !important;
@@ -4713,8 +4713,8 @@ html.light-mode main .text-\[\#E0E0E6\] {
 }
 
 /* Form controls synchronized with TopBar search style */
-html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#floating-search-input):not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
-html.light-mode input[type="search"]:not(#floating-search-input):not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+html.light-mode input[type="search"]:not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="url"]:not(#floating-search-input):not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="email"]:not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="password"]:not(.fluent-search-box input):not(.fluent-input-box input),
@@ -4727,8 +4727,8 @@ html.light-mode select {
   color: #111827 !important;
 }
 
-html.light-mode input[type="text"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
-html.light-mode input[type="search"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+html.light-mode input[type="text"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+html.light-mode input[type="search"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="url"]:focus:not(#floating-search-input):not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="email"]:focus:not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="password"]:focus:not(.fluent-search-box input):not(.fluent-input-box input),
@@ -4740,16 +4740,22 @@ html.light-mode textarea:focus:not(.fluent-search-box textarea):not(.fluent-inpu
 
 /* TopBar search & Fluent input boxes inner inputs */
 #topbar-search-box input,
+#sparkle-os-topbar-search-box input,
+#sparkle-desktop-search-box input,
 .fluent-search-box input,
 .fluent-input-box input,
 .fluent-search-box textarea,
 .fluent-input-box textarea,
 html.light-mode #topbar-search-box input,
+html.light-mode #sparkle-os-topbar-search-box input,
+html.light-mode #sparkle-desktop-search-box input,
 html.light-mode .fluent-search-box input,
 html.light-mode .fluent-input-box input,
 html.light-mode .fluent-search-box textarea,
 html.light-mode .fluent-input-box textarea,
 html:not(.light-mode) #topbar-search-box input,
+html:not(.light-mode) #sparkle-os-topbar-search-box input,
+html:not(.light-mode) #sparkle-desktop-search-box input,
 html:not(.light-mode) .fluent-search-box input,
 html:not(.light-mode) .fluent-input-box input,
 html:not(.light-mode) .fluent-search-box textarea,
@@ -5445,18 +5451,19 @@ html.light-mode .fluent-btn-secondary:active {
 #channels-search-box,
 #settings-search-box,
 #find-words-bar > div,
-input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
-input[type="email"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
-input[type="url"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
-input[type="password"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+input[type="email"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+input[type="url"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+input[type="password"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
 input[type="number"]:not([data-no-line]):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input) {
   border-bottom: 1.5px solid #777777 !important;
   transition: border-bottom-color 0.15s ease-in-out, border-color 0.15s ease-in-out !important;
 }
 
-#topbar-search-box {
+#topbar-search-box,
+#sparkle-os-topbar-search-box,
+#sparkle-desktop-search-box {
   border-radius: 9999px !important;
-  border: none !important;
   border-bottom: none !important;
 }
 
@@ -5470,10 +5477,10 @@ input[type="number"]:not([data-no-line]):not(.fluent-search-box input):not(.flue
 #channels-search-box:focus-within,
 #settings-search-box:focus-within,
 #find-words-bar > div:focus-within,
-input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
-input[type="email"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
-input[type="url"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
-input[type="password"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+input[type="email"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+input[type="url"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+input[type="password"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
 input[type="number"]:not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus {
   border-bottom: 1.5px solid #4cc2ff !important;
   outline: none !important;
@@ -5488,10 +5495,10 @@ html.light-mode #sidebar-search-box,
 html.light-mode #channels-search-box,
 html.light-mode #settings-search-box,
 html.light-mode #find-words-bar > div,
-html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
-html.light-mode input[type="email"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
-html.light-mode input[type="url"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
-html.light-mode input[type="password"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+html.light-mode input[type="email"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+html.light-mode input[type="url"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
+html.light-mode input[type="password"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input),
 html.light-mode input[type="number"]:not([data-no-line]):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input) {
   border-bottom: 1.5px solid #8e8e93 !important;
 }
@@ -5506,10 +5513,10 @@ html.light-mode #sidebar-search-box:focus-within,
 html.light-mode #channels-search-box:focus-within,
 html.light-mode #settings-search-box:focus-within,
 html.light-mode #find-words-bar > div:focus-within,
-html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
-html.light-mode input[type="email"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
-html.light-mode input[type="url"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
-html.light-mode input[type="password"]:not(#topbar-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#spotlight-search-container input):not(#immersive-search-capsule input):not(#sidebar-search-box input):not(#settings-search-box input):not(#channels-search-box input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(.winui-search-input input):not(#find-words-bar input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+html.light-mode input[type="email"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+html.light-mode input[type="url"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
+html.light-mode input[type="password"]:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus,
 html.light-mode input[type="number"]:not(.fluent-search-box input):not(.fluent-input-box input):not(.fluent-modal-dialog input):focus {
   border-bottom: 1.5px solid #005fb8 !important;
   outline: none !important;
@@ -5530,6 +5537,10 @@ html.light-mode input[type="number"]:not(.fluent-search-box input):not(.fluent-i
 .fluent-search-box input:focus,
 #topbar-search-box input,
 #topbar-search-box input:focus,
+#sparkle-os-topbar-search-box input,
+#sparkle-os-topbar-search-box input:focus,
+#sparkle-desktop-search-box input,
+#sparkle-desktop-search-box input:focus,
 #windows-taskbar-search-box,
 #windows-taskbar-search-box:focus,
 #windows-taskbar-search-box:focus-within,
@@ -5537,9 +5548,12 @@ html.light-mode #windows-taskbar-search-box,
 html.light-mode #windows-taskbar-search-box:focus,
 html.light-mode #windows-taskbar-search-box:focus-within {
   border: none !important;
+  border-bottom: none !important;
   outline: none !important;
   outline-width: 0 !important;
   box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 #windows-taskbar-search-box input,
@@ -5612,6 +5626,8 @@ html:not(.dark) .search-sparkle-icon {
 #settings-search-box input,
 #channels-search-box input,
 #topbar-search-box input,
+#sparkle-os-topbar-search-box input,
+#sparkle-desktop-search-box input,
 .winui-search-input input,
 #find-words-bar input {
   border: none !important;
@@ -8968,42 +8984,28 @@ html.light-mode .fluent-input-box::before {
   background-color: #0078d4;
 }
 
-/* TopBar search box: 100% pill shape, no underline when unfocused, underline only when focused */
-#topbar-search-box {
+/* TopBar search boxes & Desktop Search Box: 100% pill shape, strictly no underline */
+#topbar-search-box,
+#sparkle-os-topbar-search-box,
+#sparkle-desktop-search-box {
   border-radius: 9999px !important;
-  border: none !important;
   border-bottom: none !important;
   overflow: hidden !important;
 }
 
-#topbar-search-box::after {
-  display: none !important;
-  content: none !important;
-}
-
-#topbar-search-box::before {
-  content: "" !important;
-  position: absolute !important;
-  bottom: 0 !important;
-  height: 2px !important;
-  left: 50% !important;
-  width: 0 !important;
-  transform: translateX(-50%) !important;
-  background-color: var(--ui-accent, #4cc2ff) !important;
-  border-radius: 9999px !important;
-  transition: width 240ms cubic-bezier(0.2, 0, 0, 1) !important;
-  pointer-events: none !important;
-  z-index: 10 !important;
-}
-
+#topbar-search-box::after,
+#topbar-search-box::before,
 #topbar-search-box.is-focused::before,
 #topbar-search-box.search-flyout-open::before,
-#topbar-search-box:focus-within::before {
-  width: calc(100% - 24px) !important;
-}
-
-html.light-mode #topbar-search-box::before {
-  background-color: var(--ui-accent, #0078d4) !important;
+#topbar-search-box:focus-within::before,
+#sparkle-os-topbar-search-box::after,
+#sparkle-os-topbar-search-box::before,
+#sparkle-desktop-search-box::after,
+#sparkle-desktop-search-box::before {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .fluent-search-box,
@@ -9013,10 +9015,10 @@ html.light-mode #topbar-search-box::before {
 }
 
 /* Standalone input elements across the app synchronized with TopBar search style */
-input[type="text"]:not(#pc-settings-search-input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
+input[type="text"]:not(#pc-settings-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
 input[type="email"]:not(.fluent-search-box input):not(.fluent-input-box input),
 input[type="password"]:not(.fluent-search-box input):not(.fluent-input-box input),
-input[type="search"]:not(#floating-search-input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+input[type="search"]:not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
 input[type="url"]:not(#floating-search-input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input) {
   background-color: #282c31 !important;
   border: none !important;
@@ -9028,20 +9030,20 @@ input[type="url"]:not(#floating-search-input):not(#fe-search-box input):not(#fe-
   transition: background-color 0.2s ease, border-bottom-color 0.2s ease !important;
 }
 
-input[type="text"]:focus:not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
+input[type="text"]:focus:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
 input[type="email"]:focus:not(.fluent-search-box input):not(.fluent-input-box input),
 input[type="password"]:focus:not(.fluent-search-box input):not(.fluent-input-box input),
-input[type="search"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+input[type="search"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
 input[type="url"]:focus:not(#floating-search-input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input) {
   background-color: #282c31 !important;
   border-bottom: 2px solid var(--ui-accent, #4cc2ff) !important;
   outline: none !important;
 }
 
-html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
+html.light-mode input[type="text"]:not(#pc-settings-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
 html.light-mode input[type="email"]:not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="password"]:not(.fluent-search-box input):not(.fluent-input-box input),
-html.light-mode input[type="search"]:not(#floating-search-input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+html.light-mode input[type="search"]:not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="url"]:not(#floating-search-input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input) {
   background-color: #fbfbfb !important;
   background: #fbfbfb !important;
@@ -9053,10 +9055,10 @@ html.light-mode input[type="url"]:not(#floating-search-input):not(#fe-search-box
   outline: none !important;
 }
 
-html.light-mode input[type="text"]:focus:not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
+html.light-mode input[type="text"]:focus:not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(#floating-search-input),
 html.light-mode input[type="email"]:focus:not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="password"]:focus:not(.fluent-search-box input):not(.fluent-input-box input),
-html.light-mode input[type="search"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
+html.light-mode input[type="search"]:focus:not(#floating-search-input):not(#topbar-search-box input):not(#sparkle-os-topbar-search-box input):not(#sparkle-desktop-search-box input):not(#windows-taskbar-search-box input):not(#windows-taskbar-search-flyout input):not(#windows-direct-command-flyout input):not(#windows-start-search-box input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input),
 html.light-mode input[type="url"]:focus:not(#floating-search-input):not(#fe-search-box input):not(#fe-address-box input):not(.fluent-search-box input):not(.fluent-input-box input) {
   background-color: #ffffff !important;
   background: #ffffff !important;
@@ -9112,8 +9114,6 @@ html.light-mode {
   stroke: var(--ui-accent) !important;
 }
 
-#topbar-search-box::before,
-html.light-mode #topbar-search-box::before,
 .fluent-search-box::before,
 html.light-mode .fluent-search-box::before,
 .fluent-input-box::before,
@@ -9692,22 +9692,37 @@ html.light-mode .fluent-context-menu {
   backdrop-filter: blur(40px) saturate(180%) !important;
 }
 
-/* File Explorer search & address inputs: strictly no bottom underline or focus border */
+/* File Explorer, Sparkle OS Topbar & Desktop search inputs: strictly no bottom underline or focus border */
 #fe-search-box input,
 #fe-search-box input:focus,
 #fe-address-box input,
 #fe-address-box input:focus,
+#sparkle-os-topbar-search-box input,
+#sparkle-os-topbar-search-box input:focus,
+#sparkle-desktop-search-box input,
+#sparkle-desktop-search-box input:focus,
 html.light-mode #fe-search-box input,
 html.light-mode #fe-search-box input:focus,
 html.light-mode #fe-address-box input,
-html.light-mode #fe-address-box input:focus {
+html.light-mode #fe-address-box input:focus,
+html.light-mode #sparkle-os-topbar-search-box input,
+html.light-mode #sparkle-os-topbar-search-box input:focus,
+html.light-mode #sparkle-desktop-search-box input,
+html.light-mode #sparkle-desktop-search-box input:focus,
+html.dark #sparkle-os-topbar-search-box input,
+html.dark #sparkle-os-topbar-search-box input:focus,
+html.dark #sparkle-desktop-search-box input,
+html.dark #sparkle-desktop-search-box input:focus {
   border: none !important;
   border-bottom: none !important;
+  border-bottom-width: 0 !important;
+  border-bottom-color: transparent !important;
   outline: none !important;
   box-shadow: none !important;
   background: transparent !important;
   background-color: transparent !important;
   text-decoration: none !important;
+  text-decoration-line: none !important;
 }
 
 /* File Explorer colored "Import" button next to + new tab */

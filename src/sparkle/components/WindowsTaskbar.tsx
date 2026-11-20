@@ -678,6 +678,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
       { id: 'page-file-explorer', title: 'File Explorer', subtitle: 'Switch page', keywords: 'file explorer files folders drives documents downloads pictures explorer tep tin thu muc', type: 'page', onSelect: () => onLaunchRoute('/file-explorer') },
       { id: 'page-html-writer', title: 'HTML Writer', subtitle: 'Switch page', keywords: 'html writer code editor css js preview winui 3 viet chay html', type: 'page', onSelect: () => onLaunchRoute('/html-writer') },
       { id: 'page-pc-settings', title: 'PC Settings', subtitle: 'Switch page', keywords: 'pc settings windows 11 system bluetooth network personalization windows update', type: 'page', onSelect: () => onLaunchRoute('/pc-settings') },
+      { id: 'page-defender', title: 'Windows Security', subtitle: 'Switch page', keywords: 'windows security defender antivirus virus threat firewall smartscreen protection', type: 'page', onSelect: () => onLaunchRoute('/defender') },
       { id: 'page-settings', title: 'Settings', subtitle: 'Switch page', keywords: 'cài đặt hệ thống settings preferences', type: 'page', onSelect: () => onLaunchRoute('/settings') },
       {
         id: 'flag-theme-toggle',

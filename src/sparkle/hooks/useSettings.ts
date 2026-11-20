@@ -50,6 +50,7 @@ export interface SystemSettings {
   tabbedSparkle: boolean;
   windowsMode: boolean;
   floatBar: boolean;
+  floatBarVersion?: number;
   windowsWallpaper: string;
   windowsWallpaperVersion?: number;
   windowsUiScale: 'small' | 'default' | 'large';
@@ -118,7 +119,8 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   triangleExperimentVersion: 1,
   tabbedSparkle: false,
   windowsMode: false,
-  floatBar: false,
+  floatBar: true,
+  floatBarVersion: 1,
   windowsWallpaper: 'vnext-flow-dark',
   windowsWallpaperVersion: 2,
   windowsUiScale: 'default',
@@ -248,7 +250,13 @@ export const getStoredSettings = (): SystemSettings => {
         triangleExperimentVersion: 1,
         tabbedSparkle: isTabbedSparkle,
         windowsMode: isWindowsMode,
-        floatBar: typeof parsed.floatBar === 'boolean' ? parsed.floatBar : false,
+        floatBar:
+          parsed.floatBarVersion === 1
+            ? typeof parsed.floatBar === 'boolean'
+              ? parsed.floatBar
+              : true
+            : true,
+        floatBarVersion: 1,
         windowsWallpaper:
           parsed.windowsWallpaperVersion === 2 && WINDOWS_WALLPAPERS.some((w) => w.id === parsed.windowsWallpaper)
             ? parsed.windowsWallpaper
@@ -466,7 +474,7 @@ export const updateGlobalSetting = <K extends keyof SystemSettings>(key: K, valu
   if (key === 'tabbedSparkle') {
     extraUpdates.openSettingsInNewTab = Boolean(value);
   }
-  settingsStore = { ...settingsStore, [key]: value, ...extraUpdates, fontScaleVersion: 2, spatialGlassVersion: 3, nativeKeyboardVersion: 3, pageLoadingVersion: 2, windowsWallpaperVersion: 2 };
+  settingsStore = { ...settingsStore, [key]: value, ...extraUpdates, fontScaleVersion: 2, spatialGlassVersion: 3, nativeKeyboardVersion: 3, pageLoadingVersion: 2, windowsWallpaperVersion: 2, floatBarVersion: 1 };
   draftSettingsStore = { ...settingsStore };
   try {
     localStorage.setItem('waves_system_settings', JSON.stringify(settingsStore));
@@ -490,7 +498,7 @@ export const updateMultipleSettings = (newSettings: Partial<SystemSettings>) => 
   if (newSettings.theme && !newSettings.windowsWallpaper) {
     extraUpdates.windowsWallpaper = getWallpaperForMode(settingsStore.windowsWallpaper, newSettings.theme);
   }
-  settingsStore = { ...settingsStore, ...newSettings, ...extraUpdates, fontScaleVersion: 2, spatialGlassVersion: 3, nativeKeyboardVersion: 3, pageLoadingVersion: 2, windowsWallpaperVersion: 2 };
+  settingsStore = { ...settingsStore, ...newSettings, ...extraUpdates, fontScaleVersion: 2, spatialGlassVersion: 3, nativeKeyboardVersion: 3, pageLoadingVersion: 2, windowsWallpaperVersion: 2, floatBarVersion: 1 };
   draftSettingsStore = { ...settingsStore };
   try {
     localStorage.setItem('waves_system_settings', JSON.stringify(settingsStore));

@@ -193,22 +193,40 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
         className="relative flex items-center justify-center min-w-0 max-w-[min(460px,56vw)] sm:max-w-[460px]"
       >
         <form
+          id="sparkle-os-topbar-search-box"
           onSubmit={(e) => {
             e.preventDefault();
+            const topResult = results[0];
+            if (topResult?.kind === "url") {
+              const link = searchWrapRef.current?.querySelector<HTMLAnchorElement>(
+                'a[data-primary-external="true"]',
+              );
+              if (link) {
+                link.click();
+                return;
+              }
+            }
             const firstInternal = results.find((r) => !r.externalUrl);
             if (firstInternal) {
               handleSelectResult(firstInternal);
             } else {
+              const fallbackLink = searchWrapRef.current?.querySelector<HTMLAnchorElement>(
+                'a[data-primary-external="true"]',
+              );
+              if (fallbackLink) {
+                fallbackLink.click();
+                return;
+              }
               setIsSearchOpen(true);
             }
           }}
           style={{
             backgroundColor: isLightMode
-              ? "rgba(255, 255, 255, 0.52)"
-              : "rgba(255, 255, 255, 0.10)",
-            borderColor: isLightMode ? "rgba(255, 255, 255, 0.65)" : "rgba(255, 255, 255, 0.14)",
+              ? "rgba(255, 255, 255, 0.58)"
+              : "rgba(255, 255, 255, 0.12)",
+            borderColor: isLightMode ? "rgba(255, 255, 255, 0.68)" : "rgba(255, 255, 255, 0.16)",
           }}
-          className="fluent-search-box h-[26px] rounded-full border flex items-center pl-2.5 pr-1 gap-1.5 shadow-[0_1px_6px_rgba(0,0,0,0.06)] transition-all w-full min-w-[200px] sm:min-w-[330px]"
+          className="h-[26px] rounded-full border flex items-center pl-2.5 pr-1 gap-1.5 shadow-[0_1px_6px_rgba(0,0,0,0.06)] transition-all w-full min-w-[200px] sm:min-w-[330px]"
         >
           <Search className="w-3 h-3 shrink-0 text-black/60 dark:text-white/70" strokeWidth={2} />
           <input
@@ -299,6 +317,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
                     href={item.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-primary-external="true"
                     onClick={() => {
                       setIsSearchOpen(false);
                       setSearchQuery("");

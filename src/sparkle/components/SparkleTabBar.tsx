@@ -33,6 +33,7 @@ import {
   FluentHtmlWriterIcon,
   FluentPcSettingsIcon,
   FluentFileExplorerIcon,
+  FluentDefenderIcon,
 } from './FluentIcons';
 import {
   Fluent3DHomeIcon,
@@ -50,6 +51,7 @@ import {
   Fluent3DHtmlWriterIcon,
   Fluent3DPcSettingsIcon,
   Fluent3DFileExplorerIcon,
+  Fluent3DDefenderIcon,
 } from './Fluent3DIcons';
 import { useSettings } from '../hooks/useSettings';
 
@@ -358,6 +360,13 @@ export const TabIcon: React.FC<{ route: string; active?: boolean; dynamicIcons?:
       <Fluent3DPcSettingsIcon className={iconClass} />
     ) : (
       <FluentPcSettingsIcon className={`${iconClass} text-[#111827] dark:text-white`} />
+    );
+  }
+  if (route.startsWith('/defender')) {
+    return useFluent3DForSystem ? (
+      <Fluent3DDefenderIcon className={iconClass} />
+    ) : (
+      <FluentDefenderIcon className={`${iconClass} text-[#111827] dark:text-white`} />
     );
   }
   if (route.startsWith('/settings')) {

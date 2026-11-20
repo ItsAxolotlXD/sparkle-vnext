@@ -17,6 +17,7 @@ import {
   FluentHtmlWriterIcon,
   FluentPcSettingsIcon,
   FluentFileExplorerIcon,
+  FluentDefenderIcon,
 } from './FluentIcons';
 import {
   Fluent3DHomeIcon,
@@ -31,6 +32,7 @@ import {
   Fluent3DHtmlWriterIcon,
   Fluent3DPcSettingsIcon,
   Fluent3DFileExplorerIcon,
+  Fluent3DDefenderIcon,
 } from './Fluent3DIcons';
 
 interface TabLoadingScreenProps {
@@ -141,6 +143,14 @@ export const TabLoadingScreen: React.FC<TabLoadingScreenProps> = ({
         <Fluent3DPcSettingsIcon className={largeIconClass} />
       ) : (
         <FluentPcSettingsIcon className={standardIconClass} />
+      );
+    }
+
+    if (cleanRoute.startsWith('/defender')) {
+      return useFluent3DForSystem ? (
+        <Fluent3DDefenderIcon className={largeIconClass} />
+      ) : (
+        <FluentDefenderIcon className={standardIconClass} />
       );
     }
 

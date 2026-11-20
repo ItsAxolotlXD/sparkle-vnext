@@ -1328,14 +1328,25 @@ export const PcSettings: React.FC<PcSettingsProps> = ({ navigate, initialCategor
                       </div>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleQuickScan}
-                    disabled={isScanning}
-                    className="fluent-btn-primary h-[30px] px-3 rounded-[5px] text-[12.5px] font-semibold cursor-pointer disabled:opacity-60"
-                  >
-                    {isScanning ? 'Scanning...' : 'Quick scan'}
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {navigate && (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/defender')}
+                        className="h-[30px] px-3 rounded-[5px] border border-black/12 dark:border-white/15 bg-black/[0.04] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[12.5px] font-medium cursor-pointer"
+                      >
+                        Open Windows Security
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleQuickScan}
+                      disabled={isScanning}
+                      className="fluent-btn-primary h-[30px] px-3 rounded-[5px] text-[12.5px] font-semibold cursor-pointer disabled:opacity-60"
+                    >
+                      {isScanning ? 'Scanning...' : 'Quick scan'}
+                    </button>
+                  </div>
                 </div>
                 {(isScanning || scanProgress > 0) && (
                   <div className="space-y-1">

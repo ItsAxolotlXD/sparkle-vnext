@@ -52,6 +52,7 @@ import { Feedback } from './screens/Feedback';
 import { WinUI3 } from './screens/WinUI3';
 import { HtmlWriter } from './screens/HtmlWriter';
 import { PcSettings } from './screens/PcSettings';
+import { DefenderScreen } from './screens/Defender';
 import { FileExplorer } from './screens/FileExplorer';
 import { CHANNELS_DATA } from './data/channels';
 import { NEWS_DATA } from './data/news';
@@ -91,6 +92,7 @@ export function getRouteTitle(route: string, channel?: Channel): string {
   if (route.startsWith('/winui-3') || route.startsWith('/winui')) return 'WinUI 3';
   if (route.startsWith('/html-writer')) return 'HTML Writer';
   if (route.startsWith('/pc-settings')) return 'PC Settings';
+  if (route.startsWith('/defender')) return 'Windows Security';
   if (route.startsWith('/file-explorer')) return 'File Explorer';
   if (route.startsWith('/feedback')) return 'Feedback';
   if (route.startsWith('/channels')) return 'Channels';
@@ -918,6 +920,7 @@ export default function App() {
         if (b === '/draws' || b.startsWith('/draws/')) return 'draws';
         if (b === '/html-writer' || b.startsWith('/html-writer/')) return 'html-writer';
         if (b === '/pc-settings' || b.startsWith('/pc-settings/')) return 'pc-settings';
+        if (b === '/defender' || b.startsWith('/defender/')) return 'defender';
         if (b === '/file-explorer' || b.startsWith('/file-explorer/')) return 'file-explorer';
         if (b === '/settings' || b.startsWith('/settings')) return 'settings';
         return b;
@@ -1494,6 +1497,9 @@ export default function App() {
           />
         );
 
+      case '/defender':
+        return <DefenderScreen navigate={activeNav} />;
+
       case '/file-explorer':
         return <FileExplorer navigate={activeNav} />;
 
@@ -1734,7 +1740,7 @@ export default function App() {
 
             {/* Dynamic Page Content with slide transition between tab pages like touch keyboard (no splash screen) */}
             <main className={`main-tab-page relative flex-1 w-full mx-auto rounded-tl-none md:rounded-tl-[10px] rounded-tr-none rounded-br-none rounded-bl-none overflow-hidden bg-[#f9f9f9] dark:bg-[#282c31] ${
-              currentRoute === '/' || currentRoute === '/home' || currentRoute === '/news' || currentRoute === '/updates' || isOfficeRoute || currentRoute === '/craftmine' || currentRoute === '/photopea' || currentRoute === '/vlc' || currentRoute === '/screenbox' || currentRoute === '/screenbug' || currentRoute === '/gallery' || currentRoute === '/draws' || currentRoute.startsWith('/draws/') || currentRoute === '/camera' || currentRoute === '/html-writer' || currentRoute.startsWith('/html-writer/') || currentRoute === '/pc-settings' || currentRoute.startsWith('/pc-settings/') || currentRoute === '/file-explorer' || currentRoute.startsWith('/file-explorer/')
+              currentRoute === '/' || currentRoute === '/home' || currentRoute === '/news' || currentRoute === '/updates' || isOfficeRoute || currentRoute === '/craftmine' || currentRoute === '/photopea' || currentRoute === '/vlc' || currentRoute === '/screenbox' || currentRoute === '/screenbug' || currentRoute === '/gallery' || currentRoute === '/draws' || currentRoute.startsWith('/draws/') || currentRoute === '/camera' || currentRoute === '/html-writer' || currentRoute.startsWith('/html-writer/') || currentRoute === '/pc-settings' || currentRoute.startsWith('/pc-settings/') || currentRoute === '/defender' || currentRoute.startsWith('/defender/') || currentRoute === '/file-explorer' || currentRoute.startsWith('/file-explorer/')
                 ? 'p-0 max-w-none pt-0' 
                 : 'px-4 sm:px-6 md:px-8 py-5 max-w-7xl'
             } ${
