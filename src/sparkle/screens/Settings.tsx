@@ -52,6 +52,7 @@ const SETTING_LABELS: Partial<Record<keyof SystemSettings, string>> = {
   refreshedSearchIcon: 'Refreshed Search Icon',
   windowsMode: 'SparkleOS Mode',
   floatBar: 'FloatBar',
+  topbarPosition: 'Top bar position',
   developerMode: 'Developer mode',
   animatedBootScreen: 'Animated boot screen',
   triangleExperiment: 'Loading experiment',
@@ -498,6 +499,37 @@ export const Settings: React.FC<SettingsProps> = ({
                     >
                       <span className="toggle-switch-thumb" />
                     </button>
+                  </motion.div>
+                )}
+
+                {matchesSearch(['Top bar position', 'Topbar position', 'SparkleOS', 'taskbar', 'top', 'bottom', 'left', 'right']) && (
+                  <motion.div
+                    variants={slideUpVariant}
+                    initial="hidden"
+                    animate="visible"
+                    custom={elementIndex++}
+                    id="setting-sparkleos-topbar-position"
+                    className="settings-block-card rounded-[6px] bg-white dark:bg-[#2c3037] shadow-xs px-4 py-3 sm:py-3.5 flex items-center justify-between gap-4"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <label htmlFor="sparkleos-topbar-position" className="font-normal text-sm text-[#111827] dark:text-white">
+                        Top bar position
+                      </label>
+                      <p className="mt-1 text-xs leading-relaxed text-[#6B7280] dark:text-[#9CA3AF]">
+                        Choose which screen edge the SparkleOS top bar attaches to.
+                      </p>
+                    </div>
+                    <select
+                      id="sparkleos-topbar-position"
+                      value={draftSettings.topbarPosition || 'top'}
+                      onChange={(event) => updateDraft('topbarPosition', event.target.value as SystemSettings['topbarPosition'])}
+                      className="h-9 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-2 text-sm text-[#111827] dark:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0078d4]"
+                    >
+                      <option value="top">Top</option>
+                      <option value="bottom">Bottom</option>
+                      <option value="left">Left</option>
+                      <option value="right">Right</option>
+                    </select>
                   </motion.div>
                 )}
 

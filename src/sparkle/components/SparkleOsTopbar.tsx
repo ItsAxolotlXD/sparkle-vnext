@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Search, Wifi, Globe, ExternalLink, X } from "lucide-react";
-import { useSettings, getTopbarHeightPx } from "../hooks/useSettings";
+import {
+  useSettings,
+  getTaskbarHeightPx,
+  getTopbarHeightPx,
+  FLOAT_BAR_BOTTOM_GAP_PX,
+} from "../hooks/useSettings";
 import { useCityWeather } from "../hooks/useCityWeather";
 import { useNotes } from "../context/NotesContext";
 import { CITY_WEATHER_DATA, loadWidgetsPrefs } from "./WindowsWidgetsBoard";
@@ -47,6 +52,24 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
   const isLightMode = settings.theme === "light";
   const dynamicIcons = settings.dynamicSidebarIcons !== false;
   const topbarHeight = getTopbarHeightPx(settings.taskbarScale, Boolean(settings.floatBar));
+  const topbarPosition = settings.topbarPosition || "top";
+  const taskbarPosition = settings.taskbarPosition || "bottom";
+  const isVerticalTopbar = topbarPosition === "left" || topbarPosition === "right";
+  const sharesTaskbarEdge = topbarPosition === taskbarPosition;
+  const hasMaximizedWindow = tabs.some((tab) => {
+    const state = windowStates[tab.id];
+    return Boolean(state?.isMaximized && !state.isMinimized);
+  });
+  const isTaskbarFloating =
+    Boolean(settings.floatBar) &&
+    !hasMaximizedWindow &&
+    taskbarPosition !== "left" &&
+    taskbarPosition !== "right";
+  const taskbarEdgeOffset =
+    getTaskbarHeightPx(settings.taskbarScale, isTaskbarFloating) +
+    (isTaskbarFloating && taskbarPosition === "bottom" ? FLOAT_BAR_BOTTOM_GAP_PX : 0);
+  const sharedEdgeOffset = sharesTaskbarEdge ? `${taskbarEdgeOffset}px` : "0px";
+  const verticalEdgeOffset = `${(sharesTaskbarEdge ? taskbarEdgeOffset : 0) + topbarHeight}px`;
 
   const [widgetsPrefs, setWidgetsPrefs] = useState(() => loadWidgetsPrefs());
   const { data: liveCityWeather } = useCityWeather(widgetsPrefs.selectedCityId);
@@ -161,11 +184,29 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
       aria-label="Sparkle OS Top Bar"
       style={{
         height: `${topbarHeight}px`,
+        width: isVerticalTopbar ? "100dvh" : undefined,
+        top: topbarPosition === "top" || isVerticalTopbar ? "0px" : "auto",
+        bottom: topbarPosition === "bottom" ? sharedEdgeOffset : "auto",
+        left: topbarPosition === "left" ? verticalEdgeOffset : isVerticalTopbar ? "auto" : "0px",
+        right: topbarPosition === "right" ? verticalEdgeOffset : isVerticalTopbar ? "auto" : "0px",
+        transform:
+          topbarPosition === "left"
+            ? "rotate(90deg)"
+            : topbarPosition === "right"
+              ? "rotate(-90deg)"
+              : undefined,
+        transformOrigin:
+          topbarPosition === "left"
+            ? "top left"
+            : topbarPosition === "right"
+              ? "top right"
+              : undefined,
+        ...(sharesTaskbarEdge && topbarPosition === "top" ? { top: sharedEdgeOffset } : {}),
         backgroundColor: isLightMode ? "rgba(207, 229, 249, 0.94)" : "rgba(28, 30, 36, 0.82)",
         backdropFilter: "blur(36px) saturate(165%)",
         WebkitBackdropFilter: "blur(36px) saturate(165%)",
       }}
-      className="fixed top-0 inset-x-0 z-[8800] flex items-center justify-between px-3 sm:px-4 select-none text-[#111827] dark:text-white border-b border-black/[0.06] dark:border-white/[0.08] transition-[height,background-color] duration-200 ease-out"
+      className="fixed z-[8800] flex items-center justify-between px-3 sm:px-4 select-none text-[#111827] dark:text-white border-b border-black/[0.06] dark:border-white/[0.08] transition-[height,width,top,right,bottom,left,background-color] duration-200 ease-out"
     >
       {/* Left: Weather indicator (Picture 1 style) */}
       <button
@@ -229,7 +270,10 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
           }}
           className="h-[30px] rounded-full border flex items-center pl-3 pr-1 gap-1.5 shadow-[0_1px_6px_rgba(0,0,0,0.06)] transition-all w-full min-w-[200px] sm:min-w-[340px]"
         >
-          <Search className="w-3.5 h-3.5 shrink-0 text-black/60 dark:text-white/70" strokeWidth={2} />
+          <Search
+            className="w-3.5 h-3.5 shrink-0 text-black/60 dark:text-white/70"
+            strokeWidth={2}
+          />
           <input
             ref={inputRef}
             type="text"

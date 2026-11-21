@@ -65,6 +65,7 @@ import { type AppTab } from './components/SparkleTabBar';
 import { WindowFrame, type AppWindowState } from './components/WindowFrame';
 import { WindowsStartMenu } from './components/WindowsStartMenu';
 import { WindowsTaskbar } from './components/WindowsTaskbar';
+import { SparkleOsTopbar } from './components/SparkleOsTopbar';
 import { WindowsContextMenu } from './components/WindowsContextMenu';
 import { DirectCommandFlyout } from './components/DirectCommandFlyout';
 import { DesktopSearchBox } from './components/DesktopSearchBox';
@@ -1622,10 +1623,10 @@ export default function App() {
       {/* Main App Container */}
       <div
         style={isWindowsMode ? {
-          paddingTop: settings.taskbarPosition === 'top' ? `${taskbarHeight}px` : undefined,
-          paddingBottom: settings.taskbarPosition === 'bottom' ? `${taskbarHeight}px` : undefined,
-          paddingLeft: settings.taskbarPosition === 'left' ? `${taskbarHeight}px` : undefined,
-          paddingRight: settings.taskbarPosition === 'right' ? `${taskbarHeight}px` : undefined,
+          paddingTop: `${(settings.taskbarPosition === 'top' ? taskbarHeight : 0) + (settings.topbarPosition === 'top' ? topbarHeight : 0)}px`,
+          paddingBottom: `${(settings.taskbarPosition === 'bottom' ? taskbarHeight : 0) + (settings.topbarPosition === 'bottom' ? topbarHeight : 0)}px`,
+          paddingLeft: `${(settings.taskbarPosition === 'left' ? taskbarHeight : 0) + (settings.topbarPosition === 'left' ? topbarHeight : 0)}px`,
+          paddingRight: `${(settings.taskbarPosition === 'right' ? taskbarHeight : 0) + (settings.topbarPosition === 'right' ? topbarHeight : 0)}px`,
         } : undefined}
         className={`flex-1 flex flex-col min-w-0 ${
         !isWindowsMode && (currentRoute === '/file-explorer' || currentRoute.startsWith('/file-explorer/'))
@@ -1683,7 +1684,7 @@ export default function App() {
               setIsStartMenuOpen(false);
               setDesktopContextMenu({ x: e.clientX, y: e.clientY });
             }}
-            style={{ height: `calc(100dvh - ${settings.taskbarPosition === 'left' || settings.taskbarPosition === 'right' ? 0 : taskbarHeight}px)` }}
+            style={{ height: `calc(100dvh - ${(settings.taskbarPosition === 'left' || settings.taskbarPosition === 'right' ? 0 : taskbarHeight) + (settings.topbarPosition === 'left' || settings.topbarPosition === 'right' ? 0 : topbarHeight)}px)` }}
             className="windows-desktop-workspace relative z-[1] flex-1 w-full overflow-hidden !bg-transparent"
           >
             {/* Desktop-only Insider Evaluation Watermark (always visible in SparkleOS Mode, behind all windows & UIs) */}
@@ -1824,6 +1825,19 @@ export default function App() {
       {/* Sparkle OS Topbar, Start Menu & Bottom Taskbar when Windows Mode is active */}
       {isWindowsMode && (
         <>
+          <SparkleOsTopbar
+            tabs={tabs}
+            activeTabId={activeTabId}
+            windowStates={windowStates}
+            channels={channels}
+            onSelectChannel={setCurrentChannel}
+            onLaunchRoute={(route, state) => openOrFocusAppWindow(route, state)}
+            onFocusWindow={focusWindow}
+            onToggleStartMenu={() => {
+              setIsDirectCommandOpen(false);
+              setIsStartMenuOpen((previous) => !previous);
+            }}
+          />
           <WindowsStartMenu
             isOpen={isStartMenuOpen}
             onClose={() => setIsStartMenuOpen(false)}

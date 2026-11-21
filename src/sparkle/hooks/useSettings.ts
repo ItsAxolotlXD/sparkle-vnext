@@ -59,6 +59,7 @@ export interface SystemSettings {
   taskbarScale: 'small' | 'default' | 'large';
   taskbarAlignment: 'center' | 'left';
   taskbarPosition: 'top' | 'bottom' | 'left' | 'right';
+  topbarPosition: 'top' | 'bottom' | 'left' | 'right';
   refreshedSearchIcon: boolean;
   refreshedSearchIconVersion?: number;
   newWatchTab: boolean;
@@ -131,6 +132,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   taskbarScale: 'default',
   taskbarAlignment: 'center',
   taskbarPosition: 'bottom',
+  topbarPosition: 'top',
   refreshedSearchIcon: true,
   refreshedSearchIconVersion: 1,
   newWatchTab: false,
