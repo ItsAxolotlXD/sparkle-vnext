@@ -54,6 +54,7 @@ import { HtmlWriter } from './screens/HtmlWriter';
 import { PcSettings } from './screens/PcSettings';
 import { DefenderScreen } from './screens/Defender';
 import { FileExplorer } from './screens/FileExplorer';
+import { TaskManager } from './screens/TaskManager';
 import { CHANNELS_DATA } from './data/channels';
 import { NEWS_DATA } from './data/news';
 import { Channel, NewsArticle } from './types';
@@ -94,6 +95,7 @@ export function getRouteTitle(route: string, channel?: Channel): string {
   if (route.startsWith('/pc-settings')) return 'PC Settings';
   if (route.startsWith('/defender')) return 'Windows Security';
   if (route.startsWith('/file-explorer')) return 'File Explorer';
+  if (route.startsWith('/task-manager')) return 'Task Manager';
   if (route.startsWith('/feedback')) return 'Feedback';
   if (route.startsWith('/channels')) return 'Channels';
   if (route.startsWith('/favorites')) return 'Favorites';
@@ -1504,6 +1506,9 @@ export default function App() {
       case '/file-explorer':
         return <FileExplorer navigate={activeNav} />;
 
+      case '/task-manager':
+        return <TaskManager tabs={tabs} onEndTask={handleCloseTab} />;
+
       default:
         return <HomePreview channels={channels} onSelectChannel={setCurrentChannel} navigate={activeNav} />;
     }
@@ -1604,7 +1609,12 @@ export default function App() {
 
       {/* Main App Container */}
       <div
-        style={isWindowsMode ? { paddingBottom: `${taskbarHeight}px` } : undefined}
+        style={isWindowsMode ? {
+          paddingTop: settings.taskbarPosition === 'top' ? `${taskbarHeight + topbarHeight}px` : undefined,
+          paddingBottom: settings.taskbarPosition === 'bottom' ? `${taskbarHeight}px` : undefined,
+          paddingLeft: settings.taskbarPosition === 'left' ? `${taskbarHeight}px` : undefined,
+          paddingRight: settings.taskbarPosition === 'right' ? `${taskbarHeight}px` : undefined,
+        } : undefined}
         className={`flex-1 flex flex-col min-w-0 ${
         !isWindowsMode && (currentRoute === '/file-explorer' || currentRoute.startsWith('/file-explorer/'))
           ? 'h-screen overflow-hidden'
@@ -1642,7 +1652,7 @@ export default function App() {
               setIsStartMenuOpen(false);
               setDesktopContextMenu({ x: e.clientX, y: e.clientY });
             }}
-            style={{ height: `calc(100vh - ${taskbarHeight}px)` }}
+            style={{ height: `calc(100vh - ${settings.taskbarPosition === 'left' || settings.taskbarPosition === 'right' ? topbarHeight : taskbarHeight}px)` }}
             className="windows-desktop-workspace relative z-[1] flex-1 w-full overflow-hidden !bg-transparent"
           >
             {/* Desktop-only Insider Evaluation Watermark (always visible in SparkleOS Mode, behind all windows & UIs) */}

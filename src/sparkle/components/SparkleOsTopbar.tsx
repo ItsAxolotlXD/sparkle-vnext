@@ -161,7 +161,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
       aria-label="Sparkle OS Top Bar"
       style={{
         height: `${topbarHeight}px`,
-        backgroundColor: isLightMode ? "rgba(226, 233, 243, 0.76)" : "rgba(28, 30, 36, 0.80)",
+        backgroundColor: isLightMode ? "rgba(207, 229, 249, 0.94)" : "rgba(28, 30, 36, 0.82)",
         backdropFilter: "blur(36px) saturate(165%)",
         WebkitBackdropFilter: "blur(36px) saturate(165%)",
       }}
@@ -239,7 +239,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
               setSearchQuery(e.target.value);
               setIsSearchOpen(true);
             }}
-            placeholder="Type here to search"
+            placeholder="Find on screen or search for stuff"
             aria-label="Type here to search"
             className="flex-1 min-w-[90px] bg-transparent text-[12px] text-[#111827] dark:text-white placeholder-black/55 dark:placeholder-white/60 outline-none border-none"
           />

@@ -58,6 +58,7 @@ export interface SystemSettings {
   taskbarSearchStyle: 'box' | 'button';
   taskbarScale: 'small' | 'default' | 'large';
   taskbarAlignment: 'center' | 'left';
+  taskbarPosition: 'top' | 'bottom' | 'left' | 'right';
   refreshedSearchIcon: boolean;
   refreshedSearchIconVersion?: number;
   newWatchTab: boolean;
@@ -129,6 +130,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   taskbarSearchStyle: 'box',
   taskbarScale: 'default',
   taskbarAlignment: 'center',
+  taskbarPosition: 'bottom',
   refreshedSearchIcon: true,
   refreshedSearchIconVersion: 1,
   newWatchTab: false,
@@ -144,7 +146,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 };
 
 export const FLOAT_BAR_BOTTOM_GAP_PX = 10;
-export const WINDOWS_TOPBAR_HEIGHT_PX = 44;
+export const WINDOWS_TOPBAR_HEIGHT_PX = 32;
 
 export const getTaskbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloating = false): number => {
   if (isFloating) {
@@ -157,8 +159,8 @@ export const getTaskbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloa
   return 48;
 };
 
-export const getTopbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloating = true): number => {
-  return getTaskbarHeightPx(scale, isFloating);
+export const getTopbarHeightPx = (_scale?: 'small' | 'default' | 'large', _isFloating = true): number => {
+  return WINDOWS_TOPBAR_HEIGHT_PX;
 };
 
 export const getWindowsUiScaleMultiplier = (scale?: 'small' | 'default' | 'large'): number => {
@@ -281,6 +283,9 @@ export const getStoredSettings = (): SystemSettings => {
             ? parsed.taskbarScale
             : 'default',
         taskbarAlignment: parsed.taskbarAlignment === 'left' ? 'left' : 'center',
+        taskbarPosition: ['top', 'bottom', 'left', 'right'].includes(parsed.taskbarPosition)
+          ? parsed.taskbarPosition
+          : 'bottom',
         refreshedSearchIcon: parsed.refreshedSearchIconVersion === 1
           ? (typeof parsed.refreshedSearchIcon === 'boolean' ? parsed.refreshedSearchIcon : true)
           : true,

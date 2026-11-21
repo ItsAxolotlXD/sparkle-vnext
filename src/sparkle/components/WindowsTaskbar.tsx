@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { WindowsContextMenu } from './WindowsContextMenu';
 import { contextMenuUpMotionProps, flyoutPanelClassName, flyoutPanelStyle } from './FlyoutDropdown';
-import { useSettings, SystemSettings, getTaskbarHeightPx, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
+import { useSettings, SystemSettings, getTaskbarHeightPx, getTopbarHeightPx, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
 import { useNotes } from '../context/NotesContext';
 import { TabIcon, type AppTab } from './SparkleTabBar';
 import { type AppWindowState } from './WindowFrame';
@@ -178,6 +178,8 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
     return Boolean(ws && ws.isMaximized && !ws.isMinimized);
   });
   const isFloating = Boolean(settings.floatBar) && !hasMaximizedWindow;
+  const taskbarPosition = settings.taskbarPosition || 'bottom';
+  const isVerticalTaskbar = taskbarPosition === 'left' || taskbarPosition === 'right';
   const taskbarHeight = getTaskbarHeightPx(taskbarScale, isFloating);
   const effectiveTaskbarBottom = isFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0;
   const flyoutBottomOffset = taskbarHeight + effectiveTaskbarBottom + 8;
@@ -1406,10 +1408,20 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
         }}
         style={{
           height: `${taskbarHeight}px`,
-          bottom: `${effectiveTaskbarBottom}px`,
-          left: isFloating ? '12px' : '0px',
-          right: isFloating ? '12px' : '0px',
-          borderRadius: isFloating ? '14px' : '0px',
+          bottom: taskbarPosition === 'bottom' ? `${effectiveTaskbarBottom}px` : 'auto',
+          top: isVerticalTaskbar
+            ? `${getTopbarHeightPx(taskbarScale, false)}px`
+            : taskbarPosition === 'top'
+            ? `${getTopbarHeightPx(taskbarScale, false)}px`
+            : 'auto',
+          left: taskbarPosition === 'left' ? '0px' : isFloating && !isVerticalTaskbar ? '12px' : '0px',
+          right: taskbarPosition === 'right' ? '0px' : isFloating && !isVerticalTaskbar ? '12px' : '0px',
+          width: isVerticalTaskbar ? `${taskbarHeight}px` : 'auto',
+          height: isVerticalTaskbar
+            ? `calc(100vh - ${getTopbarHeightPx(taskbarScale, false)}px)`
+            : `${taskbarHeight}px`,
+          flexDirection: isVerticalTaskbar ? 'column' : 'row',
+          borderRadius: isFloating && !isVerticalTaskbar ? '14px' : '0px',
           backgroundColor: isLightMode ? 'rgba(226, 233, 243, 0.76)' : 'rgba(28, 30, 36, 0.80)',
           backdropFilter: 'blur(36px) saturate(165%)',
           WebkitBackdropFilter: 'blur(36px) saturate(165%)',
@@ -1417,12 +1429,12 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
           outline: 'none',
           boxShadow: 'none',
         }}
-        className={`fixed z-[9000] border-0 outline-none flex items-center justify-between px-2 sm:px-3 select-none text-[#111827] dark:text-white transition-[left,right,bottom,border-radius,height,box-shadow] duration-200 ease-out ${
+        className={`fixed z-[9000] border-0 outline-none flex ${isVerticalTaskbar ? 'flex-col justify-start py-2 px-1' : 'items-center justify-between px-2 sm:px-3'} select-none text-[#111827] dark:text-white transition-[left,right,bottom,border-radius,height,box-shadow] duration-200 ease-out ${
           isFloating ? 'windows-taskbar-floating' : ''
         }`}
       >
         {/* 1. Left: Weather Widget (hidden on left when taskbar alignment is left so Start sits flush left) */}
-        {!isLeftAligned && (
+        {!isLeftAligned && !isVerticalTaskbar && (
           <button
             id="btn-taskbar-weather"
             type="button"
@@ -1448,8 +1460,8 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
 
         {/* 2. Main Cluster: Start + Search (Box or Button) + Task View + Taskbar App Icons */}
         <div
-          className={`flex items-center gap-1 sm:gap-1.5 flex-1 min-w-0 max-w-full overflow-x-auto no-scrollbar ${
-            isLeftAligned
+          className={`flex ${isVerticalTaskbar ? 'flex-col flex-none max-h-full overflow-y-auto overflow-x-hidden' : 'items-center flex-1 min-w-0 max-w-full overflow-x-auto'} gap-1 sm:gap-1.5 no-scrollbar ${
+            isVerticalTaskbar || isLeftAligned
               ? 'justify-start'
               : 'justify-center md:flex-none md:absolute md:left-1/2 md:-translate-x-1/2'
           }`}
@@ -1486,7 +1498,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
           </button>
 
           {/* Search Box or Search Icon Button based on taskbarSearchStyle */}
-          <div ref={searchBoxRef} className="relative shrink-0">
+          <div ref={searchBoxRef} className={`relative shrink-0 ${isVerticalTaskbar ? 'hidden' : ''}`}>
             {isSearchButtonMode ? (
               <button
                 id="windows-taskbar-search-btn"
@@ -2744,6 +2756,18 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                 onSelect: () => updateSetting('theme', isLightMode ? 'dark' : 'light'),
               },
               { id: 'tb-div-2', divider: true },
+              ...([
+                ['top', 'Top'],
+                ['bottom', 'Bottom'],
+                ['left', 'Left'],
+                ['right', 'Right'],
+              ] as const).map(([position, label]) => ({
+                id: `tb-location-${position}`,
+                label: `Location: ${label}`,
+                icon: <Monitor className="w-4 h-4" />,
+                checked: taskbarPosition === position,
+                onSelect: () => updateSetting('taskbarPosition', position),
+              })),
               {
                 id: 'tb-settings',
                 label: 'Taskbar settings',
