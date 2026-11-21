@@ -1656,7 +1656,7 @@ export default function App() {
               setIsStartMenuOpen(false);
               setDesktopContextMenu({ x: e.clientX, y: e.clientY });
             }}
-            style={{ height: `calc(100vh - ${settings.taskbarPosition === 'left' || settings.taskbarPosition === 'right' ? topbarHeight : taskbarHeight}px)` }}
+            style={{ height: `calc(100dvh - ${settings.taskbarPosition === 'left' || settings.taskbarPosition === 'right' ? 0 : taskbarHeight}px)` }}
             className="windows-desktop-workspace relative z-[1] flex-1 w-full overflow-hidden !bg-transparent"
           >
             {/* Desktop-only Insider Evaluation Watermark (always visible in SparkleOS Mode, behind all windows & UIs) */}

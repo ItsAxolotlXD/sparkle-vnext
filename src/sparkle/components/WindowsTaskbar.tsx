@@ -1492,8 +1492,8 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
           </button>
 
           {/* Search Box or Search Icon Button based on taskbarSearchStyle */}
-          <div ref={searchBoxRef} className={`relative shrink-0 ${isVerticalTaskbar ? 'hidden' : ''}`}>
-            {isSearchButtonMode ? (
+          <div ref={searchBoxRef} className="relative shrink-0">
+            {isVerticalTaskbar || isSearchButtonMode ? (
               <button
                 id="windows-taskbar-search-btn"
                 type="button"
@@ -1606,8 +1606,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   {isSearchOpen && (
                     <motion.div
                       key="windows-taskbar-search-flyout-wrapper"
-                      initial={settings.reduceAllMotion ? false : { y: '100%' }}
+                      initial={settings.reduceAllMotion ? false : isVerticalTaskbar ? { x: taskbarPosition === 'left' ? '-100%' : '100%' } : { y: taskbarPosition === 'top' ? '-100%' : '100%' }}
                       animate={{
+                        x: '0%',
                         y: '0%',
                         transition: settings.reduceAllMotion
                           ? { duration: 0 }
@@ -1617,12 +1618,21 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                         settings.reduceAllMotion
                           ? undefined
                           : {
-                              y: '100%',
+                              x: isVerticalTaskbar ? (taskbarPosition === 'left' ? '-100%' : '100%') : '0%',
+                              y: isVerticalTaskbar ? '0%' : (taskbarPosition === 'top' ? '-100%' : '100%'),
                               transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
                             }
                       }
-                      style={{ zIndex: 8990, paddingBottom: `${flyoutBottomOffset}px` }}
-                      className={`fixed bottom-0 inset-x-0 flex px-3 pointer-events-none ${
+                      style={{
+                        zIndex: 8990,
+                        position: 'fixed',
+                        ...(isVerticalTaskbar
+                          ? { top: 0, bottom: 0, [taskbarPosition]: `${taskbarHeight}px`, width: `calc(100vw - ${taskbarHeight}px)`, padding: '12px', alignItems: 'center' }
+                          : taskbarPosition === 'top'
+                            ? { top: `${taskbarHeight}px`, bottom: 'auto', padding: '8px 12px 0' }
+                            : { bottom: 0, paddingBottom: `${flyoutBottomOffset}px` }),
+                      }}
+                      className={`fixed ${isVerticalTaskbar ? 'flex-col justify-center' : 'inset-x-0 flex'} px-3 pointer-events-none ${
                         isLeftAligned ? 'justify-center md:justify-start' : 'justify-center'
                       }`}
                     >
@@ -1877,8 +1887,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   {isTaskViewOpen && (
                     <motion.div
                       key="windows-taskbar-taskview-wrapper"
-                      initial={settings.reduceAllMotion ? false : { y: '100%' }}
+                      initial={settings.reduceAllMotion ? false : isVerticalTaskbar ? { x: taskbarPosition === 'left' ? '-100%' : '100%' } : { y: taskbarPosition === 'top' ? '-100%' : '100%' }}
                       animate={{
+                        x: '0%',
                         y: '0%',
                         transition: settings.reduceAllMotion
                           ? { duration: 0 }
@@ -1888,12 +1899,21 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                         settings.reduceAllMotion
                           ? undefined
                           : {
-                              y: '100%',
+                              x: isVerticalTaskbar ? (taskbarPosition === 'left' ? '-100%' : '100%') : '0%',
+                              y: isVerticalTaskbar ? '0%' : (taskbarPosition === 'top' ? '-100%' : '100%'),
                               transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
                             }
                       }
-                      style={{ zIndex: 8990, paddingBottom: `${flyoutBottomOffset}px` }}
-                      className={`fixed bottom-0 inset-x-0 flex px-3 pointer-events-none ${
+                      style={{
+                        zIndex: 8990,
+                        position: 'fixed',
+                        ...(isVerticalTaskbar
+                          ? { top: 0, bottom: 0, [taskbarPosition]: `${taskbarHeight}px`, width: `calc(100vw - ${taskbarHeight}px)`, padding: '12px', alignItems: 'center' }
+                          : taskbarPosition === 'top'
+                            ? { top: `${taskbarHeight}px`, bottom: 'auto', padding: '8px 12px 0' }
+                            : { bottom: 0, paddingBottom: `${flyoutBottomOffset}px` }),
+                      }}
+                      className={`fixed ${isVerticalTaskbar ? 'flex-col justify-center' : 'inset-x-0 flex'} px-3 pointer-events-none ${
                         isLeftAligned ? 'justify-center md:justify-start' : 'justify-center'
                       }`}
                     >
