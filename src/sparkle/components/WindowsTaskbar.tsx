@@ -1399,7 +1399,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
 
   return (
     <>
-      <footer
+      <motion.footer
+        layout="position"
+        transition={{ layout: settings.reduceAllMotion ? { duration: 0 } : { type: 'spring', stiffness: 320, damping: 32 } }}
         id="windows-taskbar"
         role="region"
         aria-label="Sparkle Taskbar"
@@ -2391,9 +2393,10 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
               {isQuickSettingsOpen && (
                 <motion.div
                   ref={quickSettingsRef}
-                  initial={settings.reduceAllMotion ? false : { x: '110%', opacity: 0 }}
+                  initial={settings.reduceAllMotion ? false : isVerticalTaskbar ? { x: taskbarPosition === 'left' ? '-24px' : '24px', opacity: 0 } : taskbarPosition === 'top' ? { y: '-24px', opacity: 0 } : { y: '24px', opacity: 0 }}
                   animate={{
                     x: 0,
+                    y: 0,
                     opacity: 1,
                     transition: settings.reduceAllMotion
                       ? { duration: 0 }
@@ -2402,11 +2405,12 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   exit={
                     settings.reduceAllMotion
                       ? undefined
-                      : {
-                          x: '110%',
-                          opacity: 0,
-                          transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-                        }
+                        : {
+                            x: isVerticalTaskbar ? (taskbarPosition === 'left' ? '-24px' : '24px') : 0,
+                            y: isVerticalTaskbar ? 0 : taskbarPosition === 'top' ? '-24px' : '24px',
+                            opacity: 0,
+                            transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+                          }
                   }
                   style={{
                     ...(isVerticalTaskbar
@@ -2544,7 +2548,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
           </div>
 
         </div>
-      </footer>
+      </motion.footer>
 
       {/* WinUI 3 Acrylic Tooltip matching Sidebar tooltip */}
       {typeof document !== 'undefined' &&

@@ -677,6 +677,12 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                     <button
                       key={app.id}
                       type="button"
+                      draggable={Boolean(app.route)}
+                      onDragStart={(e) => {
+                        if (!app.route) return;
+                        e.dataTransfer.effectAllowed = 'copy';
+                        e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: app.route, title: app.label }));
+                      }}
                       onClick={() => handleLaunchApp(app)}
                       onContextMenu={(e) => openAppContextMenu(e, app)}
                       className="h-[42px] px-2.5 rounded-[6px] flex items-center gap-3 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.99] transition-all cursor-pointer text-left border-none"
@@ -694,6 +700,12 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                     <button
                       key={app.id}
                       type="button"
+                      draggable={Boolean(app.route)}
+                      onDragStart={(e) => {
+                        if (!app.route) return;
+                        e.dataTransfer.effectAllowed = 'copy';
+                        e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: app.route, title: app.label }));
+                      }}
                       onClick={() => handleLaunchApp(app)}
                       onContextMenu={(e) => openAppContextMenu(e, app)}
                       className="group py-2.5 px-1.5 rounded-[6px] flex flex-col items-center justify-center gap-1.5 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] active:scale-95 transition-all cursor-pointer border-none"
@@ -825,8 +837,11 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                           }
                         }}
                         onDragStart={(e) => {
-                          e.dataTransfer.effectAllowed = 'move';
+                          e.dataTransfer.effectAllowed = app.route ? 'copyMove' : 'move';
                           e.dataTransfer.setData('text/plain', entryKey);
+                          if (app.route) {
+                            e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: app.route, title: app.label }));
+                          }
                           setDragState({ kind: 'pinned', entryKey });
                         }}
                         onDragOver={(e) => {
