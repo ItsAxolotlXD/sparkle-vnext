@@ -332,18 +332,22 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
-      const time = now.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-      const date = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+      const time = isVerticalTaskbar
+        ? `${now.getHours() % 12 || 12}:${String(now.getMinutes()).padStart(2, '0')}`
+        : now.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+          });
+      const date = isVerticalTaskbar
+        ? `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`
+        : `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
       setClockText({ time, date });
     };
     updateClock();
     const timer = setInterval(updateClock, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isVerticalTaskbar]);
 
   // Search box & Trending Search UI state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1409,9 +1413,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
         style={{
           height: `${taskbarHeight}px`,
           bottom: taskbarPosition === 'bottom' ? `${effectiveTaskbarBottom}px` : 'auto',
-          top: isVerticalTaskbar || taskbarPosition === 'top' ? '0px' : 'auto',
-          left: taskbarPosition === 'left' ? '0px' : isFloating && !isVerticalTaskbar ? '12px' : '0px',
-          right: taskbarPosition === 'right' ? '0px' : isFloating && !isVerticalTaskbar ? '12px' : '0px',
+          top: taskbarPosition === 'top' || taskbarPosition === 'left' || taskbarPosition === 'right' ? '0px' : 'auto',
+          left: taskbarPosition === 'left' ? '0px' : isVerticalTaskbar ? 'auto' : isFloating ? '12px' : '0px',
+          right: taskbarPosition === 'right' ? '0px' : isVerticalTaskbar ? 'auto' : isFloating ? '12px' : '0px',
           width: isVerticalTaskbar ? `${taskbarHeight}px` : 'auto',
           height: isVerticalTaskbar ? '100dvh' : `${taskbarHeight}px`,
           flexDirection: isVerticalTaskbar ? 'column' : 'row',
@@ -2213,9 +2217,10 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   }
                 }}
                 onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = 'move';
-                  e.dataTransfer.setData('text/plain', slot.key);
-                  setHoverTooltip(null);
+                      e.dataTransfer.effectAllowed = 'copyMove';
+                      e.dataTransfer.setData('text/plain', slot.key);
+                      e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: pinned.route, title: pinned.title }));
+                      setHoverTooltip(null);
                   setDraggedSlotKey(slot.key);
                 }}
                 onDragOver={(e) => {

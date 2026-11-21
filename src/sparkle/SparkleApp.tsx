@@ -174,6 +174,14 @@ export default function App() {
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const [isDirectCommandOpen, setIsDirectCommandOpen] = useState(false);
   const [desktopContextMenu, setDesktopContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [desktopShortcuts, setDesktopShortcuts] = useState<Array<{ route: string; title: string; x: number; y: number }>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('sparkle_desktop_shortcuts_v1') || '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
   const [windowStates, setWindowStates] = useState<Record<string, AppWindowState>>({});
   const hasMaximizedWindow = isWindowsMode && tabs.some((t) => {
     const ws = windowStates[t.id];
@@ -1649,6 +1657,25 @@ export default function App() {
               setIsStartMenuOpen(false);
               setDesktopContextMenu(null);
             }}
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes('application/x-sparkle-desktop-shortcut')) e.preventDefault();
+            }}
+            onDrop={(e) => {
+              const payload = e.dataTransfer.getData('application/x-sparkle-desktop-shortcut');
+              if (!payload) return;
+              e.preventDefault();
+              try {
+                const shortcut = JSON.parse(payload);
+                if (!shortcut.route || !shortcut.title) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                setDesktopShortcuts((previous) => {
+                  if (previous.some((item) => item.route === shortcut.route)) return previous;
+                  const next = [...previous, { route: shortcut.route, title: shortcut.title, x: e.clientX - rect.left, y: e.clientY - rect.top }];
+                  localStorage.setItem('sparkle_desktop_shortcuts_v1', JSON.stringify(next));
+                  return next;
+                });
+              } catch {}
+            }}
             onContextMenu={(e) => {
               if ((e.target as HTMLElement).closest('[data-window-frame]')) return;
               e.preventDefault();
@@ -1661,6 +1688,19 @@ export default function App() {
           >
             {/* Desktop-only Insider Evaluation Watermark (always visible in SparkleOS Mode, behind all windows & UIs) */}
             {isSplashFinished && <EvaluationWatermark isTaskbarFloating={isTaskbarFloating} />}
+            {desktopShortcuts.map((shortcut) => (
+              <button
+                key={shortcut.route}
+                type="button"
+                onClick={() => openOrFocusAppWindow(shortcut.route)}
+                style={{ left: shortcut.x, top: shortcut.y }}
+                className="absolute z-[2] w-[88px] min-h-[88px] -translate-x-1/2 -translate-y-1/2 rounded-md p-2 flex flex-col items-center justify-center gap-1 text-white text-center text-xs hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                aria-label={`Open ${shortcut.title}`}
+              >
+                <Monitor className="w-8 h-8 drop-shadow-md" aria-hidden="true" />
+                <span className="line-clamp-2 drop-shadow-md">{shortcut.title}</span>
+              </button>
+            ))}
             {/* Desktop Search Box Widget (Picture 2) */}
             {isSplashFinished && settings.showDesktopSearch !== false && (
               <DesktopSearchBox
@@ -1835,6 +1875,13 @@ export default function App() {
                     icon: <Monitor className="w-4 h-4" />,
                     checked: settings.showDesktopSearch !== false,
                     onSelect: () => updateSetting('showDesktopSearch', !(settings.showDesktopSearch !== false)),
+                  },
+                  {
+                    id: 'desk-show-search',
+                    label: 'Show search',
+                    icon: <Search className="w-4 h-4" />,
+                    checked: settings.showDesktopSearch !== false,
+                    onSelect: () => updateSetting('showDesktopSearch', true),
                   },
                   {
                     id: 'desk-sort',
