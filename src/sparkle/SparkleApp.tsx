@@ -179,7 +179,12 @@ export default function App() {
     const ws = windowStates[t.id];
     return Boolean(ws && ws.isMaximized && !ws.isMinimized);
   });
-  const isTaskbarFloating = isWindowsMode && Boolean(settings.floatBar) && !hasMaximizedWindow;
+  const isTaskbarFloating =
+    isWindowsMode &&
+    Boolean(settings.floatBar) &&
+    !hasMaximizedWindow &&
+    settings.taskbarPosition !== 'left' &&
+    settings.taskbarPosition !== 'right';
 
   useEffect(() => {
     const handleOpenDirectCommand = () => {
@@ -1609,7 +1614,7 @@ export default function App() {
       {/* Main App Container */}
       <div
         style={isWindowsMode ? {
-          paddingTop: settings.taskbarPosition === 'top' ? `${taskbarHeight + topbarHeight}px` : undefined,
+          paddingTop: settings.taskbarPosition === 'top' ? `${taskbarHeight}px` : undefined,
           paddingBottom: settings.taskbarPosition === 'bottom' ? `${taskbarHeight}px` : undefined,
           paddingLeft: settings.taskbarPosition === 'left' ? `${taskbarHeight}px` : undefined,
           paddingRight: settings.taskbarPosition === 'right' ? `${taskbarHeight}px` : undefined,

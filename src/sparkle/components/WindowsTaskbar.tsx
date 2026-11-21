@@ -177,9 +177,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
     const ws = windowStates[t.id];
     return Boolean(ws && ws.isMaximized && !ws.isMinimized);
   });
-  const isFloating = Boolean(settings.floatBar) && !hasMaximizedWindow;
   const taskbarPosition = settings.taskbarPosition || 'bottom';
   const isVerticalTaskbar = taskbarPosition === 'left' || taskbarPosition === 'right';
+  const isFloating = Boolean(settings.floatBar) && !hasMaximizedWindow && !isVerticalTaskbar;
   const taskbarHeight = getTaskbarHeightPx(taskbarScale, isFloating);
   const effectiveTaskbarBottom = isFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0;
   const flyoutBottomOffset = taskbarHeight + effectiveTaskbarBottom + 8;
@@ -1409,17 +1409,11 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
         style={{
           height: `${taskbarHeight}px`,
           bottom: taskbarPosition === 'bottom' ? `${effectiveTaskbarBottom}px` : 'auto',
-          top: isVerticalTaskbar
-            ? `${getTopbarHeightPx(taskbarScale, false)}px`
-            : taskbarPosition === 'top'
-            ? `${getTopbarHeightPx(taskbarScale, false)}px`
-            : 'auto',
+          top: isVerticalTaskbar || taskbarPosition === 'top' ? '0px' : 'auto',
           left: taskbarPosition === 'left' ? '0px' : isFloating && !isVerticalTaskbar ? '12px' : '0px',
           right: taskbarPosition === 'right' ? '0px' : isFloating && !isVerticalTaskbar ? '12px' : '0px',
           width: isVerticalTaskbar ? `${taskbarHeight}px` : 'auto',
-          height: isVerticalTaskbar
-            ? `calc(100vh - ${getTopbarHeightPx(taskbarScale, false)}px)`
-            : `${taskbarHeight}px`,
+          height: isVerticalTaskbar ? '100dvh' : `${taskbarHeight}px`,
           flexDirection: isVerticalTaskbar ? 'column' : 'row',
           borderRadius: isFloating && !isVerticalTaskbar ? '14px' : '0px',
           backgroundColor: isLightMode ? 'rgba(226, 233, 243, 0.76)' : 'rgba(28, 30, 36, 0.80)',
@@ -2263,7 +2257,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
         </div>
 
         {/* 3. Right System Tray: ^ Overflow, Wi-Fi + Volume (Control Center), Clock + Date, Direct Command, Show Desktop */}
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 h-full">
+        <div className={`flex ${isVerticalTaskbar ? 'flex-col w-full items-center gap-1 h-auto shrink-0' : 'items-center gap-0.5 sm:gap-1 shrink-0 h-full'}`}>
           {isLeftAligned && (
             <button
               id="btn-taskbar-weather"
@@ -2309,11 +2303,17 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   exit={{ opacity: 0, y: 10, scale: 0.96 }}
                   transition={{ duration: 0.14 }}
                   style={{
-                    bottom: `${flyoutBottomOffset}px`,
+                    ...(isVerticalTaskbar
+                      ? taskbarPosition === 'left'
+                        ? { left: `${taskbarHeight + 8}px`, right: 'auto', top: '12px', bottom: 'auto' }
+                        : { right: `${taskbarHeight + 8}px`, left: 'auto', top: '12px', bottom: 'auto' }
+                      : taskbarPosition === 'top'
+                        ? { top: `${taskbarHeight + 8}px`, bottom: 'auto', right: '12px' }
+                        : { bottom: `${flyoutBottomOffset}px`, right: '12px' }),
                     backgroundColor: isLightMode ? 'rgba(245, 245, 247, 0.92)' : 'rgba(30, 32, 37, 0.92)',
                     backdropFilter: 'blur(28px)',
                   }}
-                  className="fixed right-12 w-[195px] p-1.5 rounded-[10px] border border-black/10 dark:border-white/[0.12] shadow-2xl space-y-0.5 z-[9500]"
+                  className="fixed w-[195px] p-1.5 rounded-[10px] border border-black/10 dark:border-white/[0.12] shadow-2xl space-y-0.5 z-[9500]"
                 >
                   <button
                     type="button"
@@ -2384,9 +2384,15 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                         }
                   }
                   style={{
-                    bottom: `${flyoutBottomOffset}px`,
+                    ...(isVerticalTaskbar
+                      ? taskbarPosition === 'left'
+                        ? { left: `${taskbarHeight + 8}px`, right: 'auto', top: '12px', bottom: 'auto' }
+                        : { right: `${taskbarHeight + 8}px`, left: 'auto', top: '12px', bottom: 'auto' }
+                      : taskbarPosition === 'top'
+                        ? { top: `${taskbarHeight + 8}px`, bottom: 'auto', right: '12px' }
+                        : { bottom: `${flyoutBottomOffset}px`, right: '12px' }),
                   }}
-                  className="windows-mica-frame fixed right-3 w-[300px] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-2xl p-3.5 space-y-3 z-[9500]"
+                  className="windows-mica-frame fixed w-[300px] max-w-[calc(100vw-5rem)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-2xl p-3.5 space-y-3 z-[9500]"
                 >
                   <div className="grid grid-cols-4 gap-2">
                     <button
@@ -2475,7 +2481,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                 onCloseDirectCommand();
                 setIsQuickSettingsOpen((prev) => !prev);
               }}
-              className={`${isFloating ? (taskbarScale === 'small' ? 'h-[28px]' : 'h-[34px]') : 'h-[36px]'} pl-2 pr-1 rounded-[5px] flex flex-col items-end justify-center leading-[1.15] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none text-right shrink-0`}
+              className={`${isVerticalTaskbar ? 'w-full h-auto min-h-[44px] px-0 items-center text-center' : `${isFloating ? (taskbarScale === 'small' ? 'h-[28px]' : 'h-[34px]') : 'h-[36px]'} pl-2 pr-1 items-end text-right`} rounded-[5px] flex flex-col justify-center leading-[1.15] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none shrink-0`}
             >
               <span className={`${clockTextSizeClass} font-normal tabular-nums`}>{clockText.time}</span>
               <span className={`${clockTextSizeClass} font-normal tabular-nums`}>{clockText.date}</span>
