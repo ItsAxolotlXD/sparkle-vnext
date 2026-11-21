@@ -67,7 +67,6 @@ import { WindowsStartMenu } from './components/WindowsStartMenu';
 import { WindowsTaskbar } from './components/WindowsTaskbar';
 import { WindowsContextMenu } from './components/WindowsContextMenu';
 import { DirectCommandFlyout } from './components/DirectCommandFlyout';
-import { SparkleOsTopbar } from './components/SparkleOsTopbar';
 import { DesktopSearchBox } from './components/DesktopSearchBox';
 import { Plus, RefreshCw, Monitor, Sun, Moon, Sparkles, Palette, LogOut, Search } from 'lucide-react';
 
@@ -1780,21 +1779,6 @@ export default function App() {
       {/* Sparkle OS Topbar, Start Menu & Bottom Taskbar when Windows Mode is active */}
       {isWindowsMode && (
         <>
-          {isSplashFinished && (
-            <SparkleOsTopbar
-              tabs={tabs}
-              activeTabId={activeTabId}
-              windowStates={windowStates}
-              channels={channels}
-              onSelectChannel={setCurrentChannel}
-              onLaunchRoute={(r, st) => openOrFocusAppWindow(r, st)}
-              onFocusWindow={handleTaskbarWindowClick}
-              onToggleStartMenu={() => {
-                setIsDirectCommandOpen(false);
-                setIsStartMenuOpen((prev) => !prev);
-              }}
-            />
-          )}
           <WindowsStartMenu
             isOpen={isStartMenuOpen}
             onClose={() => setIsStartMenuOpen(false)}
@@ -1841,10 +1825,17 @@ export default function App() {
                 onClose={() => setDesktopContextMenu(null)}
                 items={[
                   {
-                    id: 'desk-new-window',
-                    label: 'New window',
-                    icon: <Plus className="w-4 h-4" />,
-                    onSelect: () => handleCreateTab('/'),
+                    id: 'desk-view',
+                    label: 'View',
+                    icon: <Monitor className="w-4 h-4" />,
+                    checked: settings.showDesktopSearch !== false,
+                    onSelect: () => updateSetting('showDesktopSearch', !(settings.showDesktopSearch !== false)),
+                  },
+                  {
+                    id: 'desk-sort',
+                    label: 'Sort by',
+                    icon: <Monitor className="w-4 h-4" />,
+                    onSelect: () => openOrFocusAppWindow('/pc-settings/personalization'),
                   },
                   {
                     id: 'desk-refresh',
@@ -1852,46 +1843,31 @@ export default function App() {
                     icon: <RefreshCw className="w-4 h-4" />,
                     onSelect: () => window.location.reload(),
                   },
-                  {
-                    id: 'desk-show-desktop',
-                    label: 'Show desktop',
-                    icon: <Monitor className="w-4 h-4" />,
-                    onSelect: handleShowDesktop,
-                  },
-                  {
-                    id: 'desk-show-search',
-                    label: 'Show search',
-                    icon: <Search className="w-4 h-4" />,
-                    checked: settings.showDesktopSearch !== false,
-                    onSelect: () => updateSetting('showDesktopSearch', !(settings.showDesktopSearch !== false)),
-                  },
                   { id: 'desk-div-1', divider: true },
                   {
-                    id: 'desk-theme',
-                    label: settings.theme === 'light' ? 'Switch to Dark mode' : 'Switch to Light mode',
-                    icon: settings.theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />,
-                    onSelect: () => updateSetting('theme', settings.theme === 'light' ? 'dark' : 'light'),
+                    id: 'desk-new-window',
+                    label: 'New',
+                    icon: <Plus className="w-4 h-4" />,
+                    onSelect: () => handleCreateTab('/'),
                   },
                   {
-                    id: 'desk-acrylic',
-                    label: 'Acrylic glass',
+                    id: 'desk-direct-command',
+                    label: 'Direct Command',
                     icon: <Sparkles className="w-4 h-4" />,
-                    checked: Boolean(settings.spatialGlass),
-                    onSelect: () => updateSetting('spatialGlass', !settings.spatialGlass),
+                    onSelect: () => setIsDirectCommandOpen(true),
                   },
                   { id: 'desk-div-2', divider: true },
                   {
-                    id: 'desk-personalize',
-                    label: 'Personalize',
+                    id: 'desk-background',
+                    label: 'Change background',
                     icon: <Palette className="w-4 h-4" />,
                     onSelect: () => openOrFocusAppWindow('/pc-settings/personalization'),
                   },
                   {
-                    id: 'desk-exit-win',
-                    label: 'Exit SparkleOS Mode',
-                    icon: <LogOut className="w-4 h-4" />,
-                    danger: true,
-                    onSelect: () => updateSetting('windowsMode', false),
+                    id: 'desk-personalize',
+                    label: 'Personalization',
+                    icon: <Palette className="w-4 h-4" />,
+                    onSelect: () => openOrFocusAppWindow('/pc-settings/personalization'),
                   },
                 ]}
               />

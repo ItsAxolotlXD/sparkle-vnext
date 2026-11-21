@@ -2318,17 +2318,6 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      updateSetting('nativeKeyboard', !settings.nativeKeyboard);
-                      setIsTrayOverflowOpen(false);
-                    }}
-                    className="w-full h-8 px-2.5 rounded-[6px] flex items-center gap-2.5 text-[12px] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] cursor-pointer text-left border-none"
-                  >
-                    <Keyboard className="w-3.5 h-3.5" />
-                    <span>{settings.nativeKeyboard ? 'Hide touch keyboard' : 'Touch keyboard'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
                       onLaunchRoute('/settings');
                       setIsTrayOverflowOpen(false);
                     }}
@@ -2399,7 +2388,20 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   }}
                   className="windows-mica-frame fixed right-3 w-[300px] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-2xl p-3.5 space-y-3 z-[9500]"
                 >
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateSetting('nativeKeyboard', !settings.nativeKeyboard)}
+                      aria-pressed={Boolean(settings.nativeKeyboard)}
+                      className={`h-[56px] rounded-[8px] flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors cursor-pointer border ${
+                        settings.nativeKeyboard
+                          ? 'bg-[#0078d4] text-white border-[#0078d4]'
+                          : 'bg-black/[0.05] dark:bg-white/[0.08] border-black/[0.06] dark:border-white/[0.08] hover:bg-black/10 dark:hover:bg-white/[0.12]'
+                      }`}
+                    >
+                      <Keyboard className="w-4 h-4" />
+                      <span>Keyboard</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => updateSetting('theme', settings.theme === 'light' ? 'dark' : 'light')}
@@ -2742,20 +2744,6 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                 onSelect: onShowDesktop,
               },
               { id: 'tb-div-1', divider: true },
-              {
-                id: 'tb-touch-keyboard',
-                label: 'Touch keyboard',
-                icon: <Keyboard className="w-4 h-4" />,
-                checked: Boolean(settings.nativeKeyboard),
-                onSelect: () => updateSetting('nativeKeyboard', !settings.nativeKeyboard),
-              },
-              {
-                id: 'tb-theme',
-                label: isLightMode ? 'Dark mode' : 'Light mode',
-                icon: isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />,
-                onSelect: () => updateSetting('theme', isLightMode ? 'dark' : 'light'),
-              },
-              { id: 'tb-div-2', divider: true },
               ...([
                 ['top', 'Top'],
                 ['bottom', 'Bottom'],
@@ -2763,11 +2751,24 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                 ['right', 'Right'],
               ] as const).map(([position, label]) => ({
                 id: `tb-location-${position}`,
-                label: `Location: ${label}`,
+                label,
                 icon: <Monitor className="w-4 h-4" />,
                 checked: taskbarPosition === position,
                 onSelect: () => updateSetting('taskbarPosition', position),
               })),
+              { id: 'tb-div-2', divider: true },
+              {
+                id: 'tb-theme',
+                label: `Theme (${isLightMode ? 'light' : 'dark'})`,
+                icon: isLightMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />,
+                onSelect: () => updateSetting('theme', isLightMode ? 'dark' : 'light'),
+              },
+              {
+                id: 'tb-task-manager',
+                label: 'Task manager',
+                icon: <Layers className="w-4 h-4" />,
+                onSelect: () => onLaunchRoute('/task-manager'),
+              },
               {
                 id: 'tb-settings',
                 label: 'Taskbar settings',
