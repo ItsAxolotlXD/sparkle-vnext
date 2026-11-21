@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Search, Wifi, Globe, ExternalLink, X } from "lucide-react";
-import { useSettings, WINDOWS_TOPBAR_HEIGHT_PX } from "../hooks/useSettings";
+import { useSettings, getTopbarHeightPx } from "../hooks/useSettings";
 import { useCityWeather } from "../hooks/useCityWeather";
 import { useNotes } from "../context/NotesContext";
 import { CITY_WEATHER_DATA, loadWidgetsPrefs } from "./WindowsWidgetsBoard";
@@ -46,6 +46,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
   const { notes, setActiveNoteId } = useNotes();
   const isLightMode = settings.theme === "light";
   const dynamicIcons = settings.dynamicSidebarIcons !== false;
+  const topbarHeight = getTopbarHeightPx(settings.taskbarScale, Boolean(settings.floatBar));
 
   const [widgetsPrefs, setWidgetsPrefs] = useState(() => loadWidgetsPrefs());
   const { data: liveCityWeather } = useCityWeather(widgetsPrefs.selectedCityId);
@@ -159,18 +160,18 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
       role="banner"
       aria-label="Sparkle OS Top Bar"
       style={{
-        height: `${WINDOWS_TOPBAR_HEIGHT_PX}px`,
-        backgroundColor: isLightMode ? "rgba(235, 243, 252, 0.42)" : "rgba(18, 20, 26, 0.48)",
-        backdropFilter: "blur(24px) saturate(150%)",
-        WebkitBackdropFilter: "blur(24px) saturate(150%)",
+        height: `${topbarHeight}px`,
+        backgroundColor: isLightMode ? "rgba(226, 233, 243, 0.76)" : "rgba(28, 30, 36, 0.80)",
+        backdropFilter: "blur(36px) saturate(165%)",
+        WebkitBackdropFilter: "blur(36px) saturate(165%)",
       }}
-      className="fixed top-0 inset-x-0 z-[8800] flex items-center justify-between px-3 sm:px-4 select-none text-[#111827] dark:text-white border-b border-black/[0.05] dark:border-white/[0.06]"
+      className="fixed top-0 inset-x-0 z-[8800] flex items-center justify-between px-3 sm:px-4 select-none text-[#111827] dark:text-white border-b border-black/[0.06] dark:border-white/[0.08] transition-[height,background-color] duration-200 ease-out"
     >
       {/* Left: Weather indicator (Picture 1 style) */}
       <button
         type="button"
         onClick={() => window.dispatchEvent(new CustomEvent("sparkle:toggle-widgets-board"))}
-        className="flex items-center gap-1.5 h-[26px] px-2 rounded-full hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none bg-transparent text-left shrink-0"
+        className="flex items-center gap-1.5 h-[30px] px-2.5 rounded-full hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none bg-transparent text-left shrink-0"
         title="Open Widgets"
       >
         <img
@@ -226,9 +227,9 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
               : "rgba(255, 255, 255, 0.12)",
             borderColor: isLightMode ? "rgba(255, 255, 255, 0.68)" : "rgba(255, 255, 255, 0.16)",
           }}
-          className="h-[26px] rounded-full border flex items-center pl-2.5 pr-1 gap-1.5 shadow-[0_1px_6px_rgba(0,0,0,0.06)] transition-all w-full min-w-[200px] sm:min-w-[330px]"
+          className="h-[30px] rounded-full border flex items-center pl-3 pr-1 gap-1.5 shadow-[0_1px_6px_rgba(0,0,0,0.06)] transition-all w-full min-w-[200px] sm:min-w-[340px]"
         >
-          <Search className="w-3 h-3 shrink-0 text-black/60 dark:text-white/70" strokeWidth={2} />
+          <Search className="w-3.5 h-3.5 shrink-0 text-black/60 dark:text-white/70" strokeWidth={2} />
           <input
             ref={inputRef}
             type="text"
@@ -240,7 +241,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
             }}
             placeholder="Type here to search"
             aria-label="Type here to search"
-            className="flex-1 min-w-[90px] bg-transparent text-[11.5px] text-[#111827] dark:text-white placeholder-black/55 dark:placeholder-white/60 outline-none border-none"
+            className="flex-1 min-w-[90px] bg-transparent text-[12px] text-[#111827] dark:text-white placeholder-black/55 dark:placeholder-white/60 outline-none border-none"
           />
           {searchQuery && (
             <button
@@ -262,7 +263,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
                 ? "rgba(255, 255, 255, 0.78)"
                 : "rgba(255, 255, 255, 0.14)",
             }}
-            className="h-[20px] px-2.5 rounded-full flex items-center gap-1.5 max-w-[175px] shrink-0 hover:brightness-105 transition-all cursor-pointer border-none text-left shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+            className="h-[22px] px-2.5 rounded-full flex items-center gap-1.5 max-w-[175px] shrink-0 hover:brightness-105 transition-all cursor-pointer border-none text-left shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
             title={activeTab ? activeTab.title : "Sparkle vNext"}
           >
             {activeTab ? (
@@ -308,7 +309,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
                 backdropFilter: "blur(32px) saturate(165%)",
                 WebkitBackdropFilter: "blur(32px) saturate(165%)",
               }}
-              className="absolute top-[32px] left-1/2 -translate-x-1/2 w-[min(390px,92vw)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-xl p-1.5 space-y-0.5 z-[9100]"
+              className="absolute top-[36px] left-1/2 -translate-x-1/2 w-[min(390px,92vw)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-xl p-1.5 space-y-0.5 z-[9100]"
             >
               {results.map((item) =>
                 item.externalUrl ? (
@@ -374,7 +375,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
       <button
         type="button"
         onClick={() => window.dispatchEvent(new CustomEvent("sparkle:toggle-quick-settings"))}
-        className="flex items-center gap-2.5 h-[26px] px-2 rounded-full hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none bg-transparent shrink-0"
+        className="flex items-center gap-2.5 h-[30px] px-2.5 rounded-full hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none bg-transparent shrink-0"
         title="Quick Settings & Status"
       >
         <Wifi className="w-3.5 h-3.5" strokeWidth={2} />

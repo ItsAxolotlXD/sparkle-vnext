@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect, useLayoutEffect, useCallback, creat
 import { motion } from 'motion/react';
 import { Minus, Square, X, ArrowLeft } from 'lucide-react';
 import { TabIcon, type AppTab } from './SparkleTabBar';
-import { useSettings, getTaskbarHeightPx, getWindowsUiScaleMultiplier, FLOAT_BAR_BOTTOM_GAP_PX, WINDOWS_TOPBAR_HEIGHT_PX } from '../hooks/useSettings';
+import { useSettings, getTaskbarHeightPx, getTopbarHeightPx, getWindowsUiScaleMultiplier, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
 
 export const WindowTitleBarPortalContext = createContext<{
   titleBarSlotEl: HTMLDivElement | null;
@@ -97,7 +97,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
   const desktopMinX = isDesktop && !isRightSidebar ? sidebarOffset : 0;
   const desktopMaxX = isDesktop && isRightSidebar ? viewport.width - sidebarOffset : viewport.width;
   const floatingGap = !windowState.isMaximized && isTaskbarFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0;
-  const desktopMinY = WINDOWS_TOPBAR_HEIGHT_PX;
+  const topbarHeight = getTopbarHeightPx(settings.taskbarScale, Boolean(settings.floatBar));
+  const desktopMinY = topbarHeight;
   const desktopMaxY = viewport.height - taskbarHeight - floatingGap;
 
   // Dragging state

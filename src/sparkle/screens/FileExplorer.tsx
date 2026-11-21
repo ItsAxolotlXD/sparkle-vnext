@@ -49,9 +49,9 @@ import {
   Star,
   Download,
   FileArchive,
+  Filter,
 } from 'lucide-react';
 import { FILE_EXPLORER_ICON_URL, Fluent3DSettingsIcon } from '../components/Fluent3DIcons';
-import { FluentSearchIcon } from '../components/FluentIcons';
 import { WindowTitleBarPortalContext } from '../components/WindowFrame';
 import { flyoutPanelClassName, flyoutPanelStyle, contextMenuMotionProps } from '../components/FlyoutDropdown';
 import { modalDialogVariants, modalBackdropVariants } from '../utils/animations';
@@ -143,7 +143,7 @@ interface ExplorerPreferences {
 const DEFAULT_EXPLORER_PREFS: ExplorerPreferences = {
   defaultDir: 'dir-home',
   defaultViewMode: 'details',
-  showDetailsByDefault: true,
+  showDetailsByDefault: false,
   showFileExtensions: true,
   compactSpacing: false,
   doubleClickToOpen: true,
@@ -1474,11 +1474,15 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [kindFilter, setKindFilter] = useState<'all' | 'folders' | 'media' | 'documents' | 'code'>('all');
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadExplorerPrefs().defaultViewMode);
   const [showDetailsPane, setShowDetailsPane] = useState<boolean>(() => loadExplorerPrefs().showDetailsByDefault);
   const [isNavDrawerOpen, setIsNavDrawerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>('sys-dl-wallpaper-bloom');
   const [clipboard, setClipboard] = useState<{ mode: 'cut' | 'copy'; entryId: string } | null>(null);
+  const [sidebarDocsExpanded, setSidebarDocsExpanded] = useState(false);
+  const [sidebarPcExpanded, setSidebarPcExpanded] = useState(false);
+  const [sidebarCloudExpanded, setSidebarCloudExpanded] = useState(false);
 
   // Settings view accordion states (matching Widget Board Settings tab)
   const [moreSettingsExpanded, setMoreSettingsExpanded] = useState(false);
@@ -1496,7 +1500,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
   const [addressDraft, setAddressDraft] = useState('');
 
   // Dropdowns & Context Menus
-  const [openMenu, setOpenMenu] = useState<'new' | 'sort' | 'view' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'new' | 'sort' | 'view' | 'filter' | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; entry: ExplorerEntry | null } | null>(null);
 
   // Modals: Rename, New Item, Preview/Editor, Properties
@@ -1912,8 +1916,21 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
       list = allEntries.filter((e) => e.parentId === currentDirId);
     }
 
+    const filtered =
+      kindFilter === 'all'
+        ? list
+        : list.filter((e) => {
+            if (kindFilter === 'folders') return e.kind === 'folder' || e.kind === 'drive';
+            if (kindFilter === 'media') return e.kind === 'image' || e.kind === 'video' || e.kind === 'audio';
+            if (kindFilter === 'documents') {
+              return e.kind === 'word' || e.kind === 'excel' || e.kind === 'ppt' || e.kind === 'pdf' || e.kind === 'text' || e.kind === 'note' || e.kind === 'document';
+            }
+            if (kindFilter === 'code') return e.kind === 'html' || e.kind === 'code';
+            return true;
+          });
+
     // Apply sort (for Home without search, keep recent sort unless explicitly sorted, or always sort folders first on folder views)
-    const sorted = [...list].sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       if (currentDirId !== 'dir-home') {
         const aDir = a.kind === 'folder' || a.kind === 'drive' ? 0 : 1;
         const bDir = b.kind === 'folder' || b.kind === 'drive' ? 0 : 1;
@@ -1928,7 +1945,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
     });
 
     return sorted;
-  }, [allEntries, currentDirId, searchQuery, sortField, sortOrder]);
+  }, [allEntries, currentDirId, searchQuery, sortField, sortOrder, kindFilter]);
 
   const homeFavorites = useMemo(
     () => allEntries.filter((e) => e.isFavorite && e.kind !== 'drive').slice(0, 6),
@@ -2003,6 +2020,29 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
     },
     [navigate, navigateToDir, setActiveNoteId]
   );
+
+  const getDisplayName = useCallback(
+    (entry: ExplorerEntry) => {
+      if (fePrefs.showFileExtensions || entry.kind === 'folder' || entry.kind === 'drive' || entry.kind === 'app') {
+        return entry.name;
+      }
+      const dotIdx = entry.name.lastIndexOf('.');
+      return dotIdx > 0 ? entry.name.slice(0, dotIdx) : entry.name;
+    },
+    [fePrefs.showFileExtensions]
+  );
+
+  const getOpenAppLabel = useCallback((entry: ExplorerEntry) => {
+    if (entry.kind === 'folder') return 'Open folder';
+    if (entry.kind === 'drive') return 'Open drive';
+    if (entry.kind === 'app') return 'Open app';
+    if (entry.linkedSource === 'gallery') {
+      return entry.kind === 'video' || entry.kind === 'audio' ? 'Open in Screenbox' : 'Open in Gallery';
+    }
+    if (entry.linkedSource === 'notes') return 'Open in Notes';
+    if (entry.linkedSource === 'html-writer') return 'Open in HTML Writer';
+    return isTextEditableEntry(entry) ? 'Edit in preview' : 'Open preview';
+  }, []);
 
   // Create Folder / Text / HTML / Note
   const handleCreateItem = (kind: 'folder' | 'text' | 'html' | 'note') => {
@@ -2467,136 +2507,206 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
     }
   };
 
-  const navGroups: Array<{
-    label: string | null;
-    items: Array<{ id: string; name: string; iconKind: DirectoryMeta['icon'] }>;
+  const sidebarTopItems: Array<{
+    id: string;
+    name: string;
+    iconKind: DirectoryMeta['icon'];
+    hasExpand?: boolean;
+    expanded?: boolean;
+    onToggleExpand?: () => void;
   }> = [
+    { id: 'dir-home', name: 'Home', iconKind: 'home' },
+    { id: 'dir-gallery', name: 'Gallery', iconKind: 'gallery' },
     {
-      label: null,
-      items: [
-        { id: 'dir-home', name: 'Home', iconKind: 'home' },
-        { id: 'dir-this-pc', name: 'This PC', iconKind: 'pc' },
-        { id: 'dir-gallery', name: 'Gallery', iconKind: 'gallery' },
-        { id: 'dir-network', name: 'Network', iconKind: 'network' },
-      ],
-    },
-    {
-      label: 'Quick access',
-      items: [
-        { id: 'dir-desktop', name: 'Desktop', iconKind: 'desktop' },
-        { id: 'dir-pictures', name: 'Images', iconKind: 'images' },
-        { id: 'dir-videos', name: 'Videos', iconKind: 'videos' },
-        { id: 'dir-downloads', name: 'Downloads', iconKind: 'downloads' },
-        { id: 'dir-music', name: 'Music', iconKind: 'music' },
-        { id: 'dir-documents', name: 'Documents', iconKind: 'documents' },
-      ],
-    },
-    {
-      label: 'Pinned',
-      items: [
-        { id: 'dir-imported', name: 'Imported from device', iconKind: 'imported' },
-        { id: 'dir-personal', name: 'Personal folder', iconKind: 'personal' },
-      ],
-    },
-    {
-      label: 'Cloud Storage',
-      items: [{ id: 'dir-cloud', name: 'Sparkle - Personal', iconKind: 'cloud' }],
+      id: 'dir-cloud',
+      name: 'Sparkle - Personal',
+      iconKind: 'cloud',
+      hasExpand: true,
+      expanded: sidebarCloudExpanded,
+      onToggleExpand: () => setSidebarCloudExpanded((v) => !v),
     },
   ];
 
-  const getOpenAppLabel = (entry: ExplorerEntry | null) => {
-    if (!entry) return 'Open';
-    if (entry.kind === 'folder' || entry.kind === 'drive') return 'Open folder';
-    if (entry.linkedSource === 'gallery') {
-      return entry.kind === 'video' || entry.kind === 'audio' ? 'Open in Screenbox' : 'Open in Gallery';
-    }
-    if (entry.linkedSource === 'notes') return 'Open in Notes';
-    if (entry.linkedSource === 'html-writer') return 'Open in HTML Writer';
-    if (entry.kind === 'app' && entry.name.includes('Settings')) return 'Open Settings';
-    if (entry.kind === 'app' && entry.name.includes('HTML')) return 'Launch HTML Writer';
-    return 'Open with...';
-  };
-
-  const getDisplayName = useCallback(
-    (entry: ExplorerEntry) => {
-      if (fePrefs.showFileExtensions || entry.kind === 'folder' || entry.kind === 'drive' || entry.kind === 'app') {
-        return entry.name;
-      }
-      const dot = entry.name.lastIndexOf('.');
-      return dot > 0 ? entry.name.slice(0, dot) : entry.name;
+  const sidebarPinnedItems: Array<{
+    id: string;
+    name: string;
+    iconKind: DirectoryMeta['icon'];
+    pinned?: boolean;
+    hasExpand?: boolean;
+    expanded?: boolean;
+    onToggleExpand?: () => void;
+  }> = [
+    { id: 'dir-desktop', name: 'Desktop', iconKind: 'desktop', pinned: true },
+    {
+      id: 'dir-documents',
+      name: 'Documents',
+      iconKind: 'documents',
+      pinned: true,
+      hasExpand: true,
+      expanded: sidebarDocsExpanded,
+      onToggleExpand: () => setSidebarDocsExpanded((v) => !v),
     },
-    [fePrefs.showFileExtensions]
-  );
+    { id: 'dir-downloads', name: 'Downloads', iconKind: 'downloads', pinned: true },
+    { id: 'dir-music', name: 'Music', iconKind: 'music', pinned: true },
+    { id: 'dir-pictures', name: 'Pictures', iconKind: 'images', pinned: true },
+    { id: 'dir-videos', name: 'Videos', iconKind: 'videos', pinned: true },
+    { id: 'dir-imported', name: 'Imported from device', iconKind: 'imported', pinned: true },
+  ];
 
-  const renderSidebarNav = () => (
-    <div ref={sidebarContainerRef} className="relative h-full flex flex-col select-none">
-      {/* Animated Vertical Blue Indicator Pill matching main Sparkle Sidebar */}
-      <ExplorerMorphingVerticalIndicator
-        containerRef={sidebarContainerRef}
-        activeKey={currentDirId}
-        accentColor={accentColor}
-      />
+  const sidebarBottomItems: Array<{
+    id: string;
+    name: string;
+    iconKind: DirectoryMeta['icon'];
+    hasExpand?: boolean;
+    expanded?: boolean;
+    onToggleExpand?: () => void;
+  }> = [
+    {
+      id: 'dir-this-pc',
+      name: 'This PC',
+      iconKind: 'pc',
+      hasExpand: true,
+      expanded: sidebarPcExpanded,
+      onToggleExpand: () => setSidebarPcExpanded((v) => !v),
+    },
+    { id: 'dir-network', name: 'Network', iconKind: 'network' },
+  ];
 
-      <div className="flex-1 overflow-y-auto sidebar-scroller p-2 space-y-3">
-        {navGroups.map((group, gi) => (
-          <div key={gi} className="space-y-0.5">
-            {group.label && (
-              <div className="px-2.5 pt-1 pb-1 text-[11px] font-semibold tracking-wide text-black/55 dark:text-white/55">
-                {group.label}
-              </div>
-            )}
-            {group.items.map((item) => {
-              const isActive = currentDirId === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  data-nav-active={isActive ? 'true' : undefined}
-                  onClick={() => navigateToDir(item.id)}
-                  className={`w-full h-[32px] px-2.5 rounded-[6px] flex items-center gap-2.5 text-[12.5px] relative transition-colors cursor-pointer border-none text-left ${
-                    isActive
-                      ? 'bg-black/[0.08] dark:bg-white/[0.11] font-semibold'
-                      : 'bg-transparent hover:bg-black/[0.05] dark:hover:bg-white/[0.06] font-normal'
-                  }`}
-                >
-                  <ExplorerSidebar3DIcon kind={item.iconKind} className="w-[17px] h-[17px]" />
-                  <span className="truncate">{item.name}</span>
-                  {item.id === 'dir-personal' && (
-                    <Pin className="w-3 h-3 ml-auto text-black/40 dark:text-white/40 shrink-0" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Bottom Settings Entry (pinned like Widget Board & Sparkle Sidebar) */}
-      <div className="p-2 border-t border-black/[0.06] dark:border-white/[0.07] shrink-0">
-        <button
-          type="button"
-          data-nav-active={currentDirId === 'dir-settings' ? 'true' : undefined}
-          onClick={() => navigateToDir('dir-settings')}
-          className={`w-full h-[32px] px-2.5 rounded-[6px] flex items-center gap-2.5 text-[12.5px] relative transition-colors cursor-pointer border-none text-left ${
-            currentDirId === 'dir-settings'
-              ? 'bg-black/[0.08] dark:bg-white/[0.11] font-semibold'
-              : 'bg-transparent hover:bg-black/[0.05] dark:hover:bg-white/[0.06] font-normal'
+  const renderSidebarNav = () => {
+    const renderNavButton = (
+      item: {
+        id: string;
+        name: string;
+        iconKind: DirectoryMeta['icon'];
+        pinned?: boolean;
+        hasExpand?: boolean;
+        expanded?: boolean;
+        onToggleExpand?: () => void;
+      },
+      depth = 0
+    ) => {
+      const isActive = currentDirId === item.id;
+      return (
+        <div
+          key={item.id}
+          onClick={() => navigateToDir(item.id)}
+          data-nav-active={isActive ? 'true' : undefined}
+          style={{ paddingLeft: `${8 + depth * 16}px` }}
+          className={`w-full h-[32px] pr-2.5 rounded-[5px] flex items-center gap-1.5 text-[12.5px] relative transition-colors cursor-pointer ${
+            isActive
+              ? 'bg-black/[0.07] dark:bg-white/[0.08] font-medium'
+              : 'bg-transparent hover:bg-black/[0.045] dark:hover:bg-white/[0.055] font-normal'
           }`}
         >
-          <ExplorerSidebar3DIcon kind="settings" className="w-[17px] h-[17px]" />
-          <span className="truncate">Settings</span>
-        </button>
-      </div>
-    </div>
-  );
+          {item.hasExpand ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                item.onToggleExpand?.();
+              }}
+              aria-label={`Toggle ${item.name}`}
+              className="w-4 h-4 rounded-[3px] flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] border-none bg-transparent cursor-pointer shrink-0 p-0"
+            >
+              {item.expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            </button>
+          ) : (
+            <span className="w-4 shrink-0" />
+          )}
+          <ExplorerSidebar3DIcon kind={item.iconKind} className="w-[17px] h-[17px]" />
+          <span className="truncate flex-1">{item.name}</span>
+          {item.pinned && (
+            <Pin className="w-3 h-3 ml-1 opacity-45 shrink-0 rotate-45" />
+          )}
+        </div>
+      );
+    };
 
-  // Reusable WinUI 3 Explorer Tab Strip (matches SparkleTabBar mechanism + merges into WindowFrame title bar)
+    const docSubfolders = allEntries.filter((e) => e.parentId === 'dir-documents' && e.kind === 'folder');
+
+    return (
+      <div ref={sidebarContainerRef} className="relative h-full flex flex-col select-none">
+        {/* Animated Vertical Blue Indicator Pill matching WinUI 3 Sidebar */}
+        <ExplorerMorphingVerticalIndicator
+          containerRef={sidebarContainerRef}
+          activeKey={currentDirId}
+          accentColor={accentColor}
+        />
+
+        <div className="flex-1 overflow-y-auto sidebar-scroller px-2 py-2.5 space-y-1">
+          {/* Group 1: Home, Gallery, Cloud */}
+          <div className="space-y-0.5">
+            {sidebarTopItems.map((item) => (
+              <React.Fragment key={item.id}>
+                {renderNavButton(item, 0)}
+                {item.id === 'dir-cloud' && sidebarCloudExpanded && (
+                  <div className="space-y-0.5">
+                    {renderNavButton({ id: 'dir-personal', name: 'Personal folder', iconKind: 'personal' }, 1)}
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
+          <div className="h-[1px] bg-black/[0.07] dark:bg-white/[0.07] my-2 mx-1.5" />
+
+          {/* Group 2: Pinned quick access folders */}
+          <div className="space-y-0.5">
+            {sidebarPinnedItems.map((item) => (
+              <React.Fragment key={item.id}>
+                {renderNavButton(item, 0)}
+                {item.id === 'dir-documents' && sidebarDocsExpanded && (
+                  <div className="space-y-0.5">
+                    {docSubfolders.length > 0 ? (
+                      docSubfolders.map((sub) =>
+                        renderNavButton(
+                          { id: sub.targetDirId || sub.id, name: sub.name, iconKind: 'folder' },
+                          1
+                        )
+                      )
+                    ) : (
+                      renderNavButton({ id: 'dir-sub-school', name: 'School project', iconKind: 'folder' }, 1)
+                    )}
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
+          <div className="h-[1px] bg-black/[0.07] dark:bg-white/[0.07] my-2 mx-1.5" />
+
+          {/* Group 3: This PC & Network */}
+          <div className="space-y-0.5">
+            {sidebarBottomItems.map((item) => (
+              <React.Fragment key={item.id}>
+                {renderNavButton(item, 0)}
+                {item.id === 'dir-this-pc' && sidebarPcExpanded && (
+                  <div className="space-y-0.5">
+                    {renderNavButton({ id: 'dir-drive-c', name: 'Local Disk (C:)', iconKind: 'drive' }, 1)}
+                    {renderNavButton({ id: 'dir-drive-d', name: 'Data (D:)', iconKind: 'drive' }, 1)}
+                    {renderNavButton({ id: 'dir-personal', name: 'Personal folder', iconKind: 'personal' }, 1)}
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Settings Entry */}
+        <div className="p-2 border-t border-black/[0.06] dark:border-white/[0.06] shrink-0">
+          {renderNavButton({ id: 'dir-settings', name: 'Settings', iconKind: 'settings' }, 0)}
+        </div>
+      </div>
+    );
+  };
+
+  // Reusable WinUI 3 Explorer Tab Strip (matches Image 2 seamless active tab into toolbar)
   const explorerTabStrip = (
     <div
       className={`flex items-end min-w-0 h-full select-none ${
         isInsideWindowFrame
           ? 'flex-1 pr-1'
-          : 'h-[40px] px-2 pt-1.5 border-b border-black/[0.07] dark:border-white/[0.07] bg-black/[0.03] dark:bg-black/25 shrink-0'
+          : 'h-[40px] px-2 pt-1.5 bg-[#e6ebf1] dark:bg-[#141414] shrink-0'
       }`}
     >
       {/* Left scroll arrow */}
@@ -2694,8 +2804,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
                   }}
                   className={`group relative h-[34px] shrink-0 px-2.5 rounded-t-[8px] flex items-center gap-2 cursor-grab active:cursor-grabbing transition-colors border outline-none ${
                     isTabActive
-                      ? 'bg-[#f8fafc] dark:bg-[#242830] text-[#111827] dark:text-white border-b-0 border-black/[0.08] dark:border-white/[0.08] shadow-xs z-10'
-                      : 'border-transparent hover:bg-black/[0.05] dark:hover:bg-white/[0.07] text-black/75 dark:text-white/75'
+                      ? 'bg-[#f8fafc] dark:bg-[#242424] text-[#111827] dark:text-white border-b-0 border-black/[0.08] dark:border-white/[0.06] z-10'
+                      : 'border-transparent hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-black/75 dark:text-white/75'
                   }`}
                 >
                   <ExplorerSidebar3DIcon kind={tabMeta.icon} className="w-4 h-4 shrink-0" />
@@ -2793,7 +2903,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
         if (contextMenu) setContextMenu(null);
         if (tabContextMenu) setTabContextMenu(null);
       }}
-      className="w-full h-full flex flex-col overflow-hidden bg-[#eef2f6]/95 dark:bg-[#191c22]/95 text-[#111827] dark:text-[#f3f3f3] select-none outline-none"
+      className="w-full h-full flex flex-col overflow-hidden bg-[#eef2f6] dark:bg-[#141414] text-[#111827] dark:text-[#f3f3f3] select-none outline-none"
     >
       {/* Hidden multi-file upload input supporting ANY file format */}
       <input
@@ -2811,8 +2921,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
         ? explorerTabStrip
         : null}
 
-      {/* 2. NAVIGATION + BREADCRUMB ADDRESS BAR + SEARCH ROW (Pinned on scroll) */}
-      <div className="h-[46px] px-2.5 flex items-center gap-2 bg-[#f8fafc]/90 dark:bg-[#242830]/90 border-b border-black/[0.06] dark:border-white/[0.06] shrink-0">
+      {/* 2. NAVIGATION + BREADCRUMB ADDRESS BAR + SEARCH ROW (Seamless continuation of active tab) */}
+      <div className="h-[44px] px-3 flex items-center gap-2 bg-[#f8fafc] dark:bg-[#242424] border-b border-black/[0.06] dark:border-white/[0.05] shrink-0">
         {/* Mobile nav drawer trigger */}
         <button
           type="button"
@@ -2874,7 +2984,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
               setIsEditingAddress(true);
             }
           }}
-          className="flex-1 min-w-0 h-[32px] px-2.5 rounded-[6px] bg-white/85 dark:bg-[#1a1d23]/85 border border-black/[0.09] dark:border-white/[0.1] flex items-center gap-1.5 overflow-hidden cursor-text"
+          className="flex-1 min-w-0 h-[30px] px-2.5 rounded-[5px] bg-black/[0.035] dark:bg-white/[0.045] border border-black/[0.07] dark:border-white/[0.07] flex items-center gap-1.5 overflow-hidden cursor-text"
         >
           <ExplorerSidebar3DIcon kind={currentDirMeta.icon} className="w-4 h-4 shrink-0" />
           {isEditingAddress ? (
@@ -2913,18 +3023,18 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
           )}
         </div>
 
-        {/* Search Input with Taskbar Search Icon & strictly no underline */}
+        {/* Search Input matching Picture 1 (WinUI 3 bottom-edge highlight, clean placeholder) */}
         <div
           id="fe-search-box"
-          className="w-[170px] sm:w-[225px] md:w-[255px] h-[32px] px-2.5 rounded-[6px] bg-white/85 dark:bg-[#1a1d23]/85 border border-black/[0.09] dark:border-white/[0.1] flex items-center gap-2 shrink-0"
+          className="w-[175px] sm:w-[225px] md:w-[255px] h-[30px] px-3 rounded-[5px] bg-white/90 dark:bg-white/[0.055] border-t border-x border-black/[0.08] dark:border-white/[0.08] border-b-[1.5px] border-b-black/45 dark:border-b-white/55 focus-within:bg-white dark:focus-within:bg-[#1f1f1f] focus-within:border-b-[2px] focus-within:border-b-[#0063B8] dark:focus-within:border-b-[#4CC2FF] transition-colors flex items-center gap-2 shrink-0"
         >
-          <FluentSearchIcon className="w-[14px] h-[14px] text-[#374151] dark:text-white/90 shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={`Search in ${currentDirMeta.name}`}
-            className="flex-1 min-w-0 !bg-transparent text-[12.5px] placeholder-black/50 dark:placeholder-white/50 !outline-none !border-0 !border-b-0 !shadow-none"
+            placeholder={`Search ${currentDirMeta.name}`}
+            aria-label={`Search ${currentDirMeta.name}`}
+            className="flex-1 min-w-0 !bg-transparent text-[12.5px] placeholder-black/55 dark:placeholder-white/75 !outline-none !border-0 !border-b-0 !shadow-none"
           />
           {searchQuery && (
             <button
@@ -2942,7 +3052,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
       {/* 3. WINUI 3 COMMAND BAR */}
       <div
         ref={menuContainerRef}
-        className="min-h-[44px] py-1 px-3 flex flex-wrap items-center justify-between gap-2 bg-[#f3f5f8]/95 dark:bg-[#1e222a]/95 border-b border-black/[0.07] dark:border-white/[0.07] shrink-0 relative z-20"
+        className="min-h-[44px] py-1 px-3 flex flex-wrap items-center justify-between gap-2 bg-[#f3f5f8] dark:bg-[#1d1d1d] border-b border-black/[0.06] dark:border-white/[0.06] shrink-0 relative z-20"
       >
         <div className="flex flex-wrap items-center gap-1">
           {/* + New Dropdown */}
@@ -3188,6 +3298,54 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
               )}
             </AnimatePresence>
           </div>
+          {/* Filter */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setOpenMenu(openMenu === 'filter' ? null : 'filter')}
+              className={`h-[30px] px-2.5 rounded-[6px] flex items-center gap-1.5 text-[12.5px] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] border-none cursor-pointer ${
+                kindFilter !== 'all' ? 'bg-black/[0.07] dark:bg-white/[0.1] font-medium' : 'bg-transparent'
+              }`}
+            >
+              <Filter className="w-3.5 h-3.5" />
+              <span>Filter</span>
+              <ChevronDown className="w-3 h-3 opacity-70" />
+            </button>
+            <AnimatePresence>
+              {openMenu === 'filter' && (
+                <div className="absolute left-0 top-9 z-50" style={{ overflow: 'clip' }}>
+                  <motion.div
+                    {...contextMenuMotionProps}
+                    style={flyoutPanelStyle}
+                    className={`${flyoutPanelClassName} w-[180px] p-1.5`}
+                  >
+                    {(
+                      [
+                        ['all', 'All items'],
+                        ['folders', 'Folders'],
+                        ['media', 'Images & Media'],
+                        ['documents', 'Documents & Notes'],
+                        ['code', 'Code & HTML'],
+                      ] as const
+                    ).map(([fk, label]) => (
+                      <button
+                        key={fk}
+                        type="button"
+                        onClick={() => {
+                          setKindFilter(fk);
+                          setOpenMenu(null);
+                        }}
+                        className="w-full h-[30px] px-2.5 rounded-[5px] flex items-center justify-between text-[12.5px] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] border-none bg-transparent cursor-pointer"
+                      >
+                        <span>{label}</span>
+                        {kindFilter === fk && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    ))}
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Right: Details Pane Toggle */}
@@ -3209,8 +3367,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
         </button>
       </div>
 
-      {/* 4. MAIN 3-COLUMN WORKSPACE (Only sidebar, center content, and details pane scroll) */}
-      <div className="flex-1 min-h-0 flex relative overflow-hidden">
+      {/* 4. MAIN SEAMLESS WORKSPACE (Sidebar + Full-bleed Canvas, matching Image 2) */}
+      <div className="flex-1 min-h-0 flex relative overflow-hidden bg-white dark:bg-[#191919]">
         {/* Mobile Overlay Sidebar Drawer */}
         {isNavDrawerOpen && (
           <div
@@ -3221,14 +3379,14 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
         <aside
           className={`${
             isNavDrawerOpen
-              ? 'fixed inset-y-0 left-0 z-40 w-[225px] bg-[#f3f5f8] dark:bg-[#191c22] shadow-2xl pt-3'
+              ? 'fixed inset-y-0 left-0 z-40 w-[225px] bg-[#f3f5f8] dark:bg-[#191919] shadow-2xl pt-3'
               : 'hidden'
-          } md:block md:w-[205px] lg:w-[218px] shrink-0 overflow-hidden border-r border-black/[0.06] dark:border-white/[0.06]`}
+          } md:block md:w-[205px] lg:w-[218px] shrink-0 overflow-hidden bg-[#f3f5f8] dark:bg-[#191919] border-r border-black/[0.06] dark:border-white/[0.06]`}
         >
           {renderSidebarNav()}
         </aside>
 
-        {/* Center Content Canvas */}
+        {/* Center Content Canvas (seamless flat canvas, no outer card margin/border) */}
         <div
           onContextMenu={(e) => {
             if (isSettingsView) return;
@@ -3236,7 +3394,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
             e.preventDefault();
             setContextMenu({ x: e.clientX, y: e.clientY, entry: null });
           }}
-          className="flex-1 min-w-0 m-2 mr-1.5 rounded-[8px] bg-white/85 dark:bg-[#22262e]/85 border border-black/[0.06] dark:border-white/[0.07] overflow-y-auto overflow-x-hidden sidebar-scroller p-4 sm:p-5 space-y-5"
+          className="flex-1 min-w-0 bg-white dark:bg-[#191919] overflow-y-auto overflow-x-hidden sidebar-scroller px-4 sm:px-5 py-3.5 space-y-5"
         >
           {/* FILE EXPLORER SETTINGS PAGE (Matching Widget Board Settings Tab layout) */}
           {isSettingsView ? (
@@ -3551,24 +3709,24 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
                             setSelectedId(item.id);
                             setContextMenu({ x: e.clientX, y: e.clientY, entry: item });
                           }}
-                          className={`p-3 rounded-[8px] flex flex-col items-center text-center gap-2.5 cursor-pointer transition-all relative ${
+                          className={`p-[2px] rounded-[9px] cursor-pointer transition-all relative ${
                             isSel
-                              ? 'border-[2px] border-[#0063B8] dark:border-[#4CC2FF] bg-[#0063B8]/[0.06] dark:bg-white/[0.05]'
-                              : 'border-[2px] border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.07]'
+                              ? 'border-[2px] border-[#5B35E5] dark:border-[#5229DB] shadow-[0_0_0_1px_rgba(0,0,0,0.22)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.45)]'
+                              : 'border-[2px] border-transparent'
                           }`}
                         >
-                          {isSel && (
-                            <span
-                              className="fluent-3d-icon absolute top-2 left-2 w-[16px] h-[16px] rounded-[4px] flex items-center justify-center"
-                              style={{ backgroundColor: accentColor }}
-                            >
-                              <Check className="w-3 h-3 stroke-[2.6]" style={{ color: accentForeground, stroke: accentForeground }} />
-                            </span>
-                          )}
-                          <div className="w-16 h-14 rounded-[6px] bg-white dark:bg-[#191c22] border border-black/[0.07] dark:border-white/[0.08] flex items-center justify-center shadow-xs">
-                            <ExplorerItemIcon entry={item} size="md" />
+                          <div
+                            className={`p-3 rounded-[6px] flex flex-col items-center text-center gap-2.5 h-full transition-colors ${
+                              isSel
+                                ? 'bg-white dark:bg-[#1f2025] border border-transparent'
+                                : 'border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.07]'
+                            }`}
+                          >
+                            <div className="w-16 h-14 rounded-[6px] bg-white dark:bg-[#191c22] border border-black/[0.07] dark:border-white/[0.08] flex items-center justify-center shadow-xs">
+                              <ExplorerItemIcon entry={item} size="md" />
+                            </div>
+                            <div className="w-full text-[12px] font-medium truncate">{getDisplayName(item)}</div>
                           </div>
-                          <div className="w-full text-[12px] font-medium truncate">{getDisplayName(item)}</div>
                         </motion.div>
                       );
                     })}
@@ -3610,26 +3768,34 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
                           data-fe-row="true"
                           onClick={() => setSelectedId(drv.id)}
                           onDoubleClick={() => openEntry(drv)}
-                          className={`p-3 rounded-[8px] flex items-center gap-3 cursor-pointer transition-all ${
+                          className={`p-[2px] rounded-[9px] cursor-pointer transition-all ${
                             isSel
-                              ? 'border-[2px] border-[#0063B8] dark:border-[#4CC2FF] bg-[#0063B8]/[0.06] dark:bg-white/[0.05]'
-                              : 'border-[2px] border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.07]'
+                              ? 'border-[2px] border-[#5B35E5] dark:border-[#5229DB] shadow-[0_0_0_1px_rgba(0,0,0,0.22)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.45)]'
+                              : 'border-[2px] border-transparent'
                           }`}
                         >
-                          <ExplorerItemIcon entry={drv} size="lg" />
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <div className="text-[12.5px] font-semibold truncate">{drv.name}</div>
-                            <div className="h-[7px] w-full rounded-full bg-black/[0.1] dark:bg-white/[0.12] overflow-hidden">
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: `${pct}%`,
-                                  backgroundColor: pct > 88 ? '#dc2626' : accentColor,
-                                }}
-                              />
-                            </div>
-                            <div className="text-[11px] text-black/60 dark:text-white/60 truncate">
-                              {free} GB free of {total} GB
+                          <div
+                            className={`p-3 rounded-[6px] flex items-center gap-3 h-full transition-colors ${
+                              isSel
+                                ? 'bg-white dark:bg-[#1f2025] border border-transparent'
+                                : 'border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.07]'
+                            }`}
+                          >
+                            <ExplorerItemIcon entry={drv} size="lg" />
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="text-[12.5px] font-semibold truncate">{drv.name}</div>
+                              <div className="h-[7px] w-full rounded-full bg-black/[0.1] dark:bg-white/[0.12] overflow-hidden">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${pct}%`,
+                                    backgroundColor: pct > 88 ? '#dc2626' : accentColor,
+                                  }}
+                                />
+                              </div>
+                              <div className="text-[11px] text-black/60 dark:text-white/60 truncate">
+                                {free} GB free of {total} GB
+                              </div>
                             </div>
                           </div>
                         </motion.div>
@@ -3730,22 +3896,31 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
                           initial={itemAnimInitial}
                           animate="visible"
                           custom={idx + 5}
+                          data-fe-row="true"
                           onClick={() => setSelectedId(drv.id)}
                           onDoubleClick={() => openEntry(drv)}
-                          className={`p-3 rounded-[8px] flex items-center gap-3 cursor-pointer transition-all ${
+                          className={`p-[2px] rounded-[9px] cursor-pointer transition-all ${
                             selectedEntry?.id === drv.id
-                              ? 'border-[2px] border-[#0063B8] dark:border-[#4CC2FF] bg-[#0063B8]/[0.06] dark:bg-white/[0.05]'
-                              : 'border-[2px] border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.07]'
+                              ? 'border-[2px] border-[#5B35E5] dark:border-[#5229DB] shadow-[0_0_0_1px_rgba(0,0,0,0.22)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.45)]'
+                              : 'border-[2px] border-transparent'
                           }`}
                         >
-                          <ExplorerItemIcon entry={drv} size="lg" />
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <div className="text-[12.5px] font-semibold truncate">{drv.name}</div>
-                            <div className="h-[7px] w-full rounded-full bg-black/[0.1] dark:bg-white/[0.12] overflow-hidden">
-                              <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: pct > 88 ? '#dc2626' : accentColor }} />
-                            </div>
-                            <div className="text-[11px] text-black/60 dark:text-white/60 truncate">
-                              {free} GB free of {total} GB
+                          <div
+                            className={`p-3 rounded-[6px] flex items-center gap-3 h-full transition-colors ${
+                              selectedEntry?.id === drv.id
+                                ? 'bg-white dark:bg-[#1f2025] border border-transparent'
+                                : 'border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.07]'
+                            }`}
+                          >
+                            <ExplorerItemIcon entry={drv} size="lg" />
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="text-[12.5px] font-semibold truncate">{drv.name}</div>
+                              <div className="h-[7px] w-full rounded-full bg-black/[0.1] dark:bg-white/[0.12] overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: pct > 88 ? '#dc2626' : accentColor }} />
+                              </div>
+                              <div className="text-[11px] text-black/60 dark:text-white/60 truncate">
+                                {free} GB free of {total} GB
+                              </div>
                             </div>
                           </div>
                         </motion.div>
@@ -3804,7 +3979,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
                     </div>
                   </motion.div>
                 ) : viewMode === 'tiles' ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                     {visibleEntries.map((item, idx) => {
                       const isSel = selectedEntry?.id === item.id;
                       return (
@@ -3825,76 +4000,115 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
                             setSelectedId(item.id);
                             setContextMenu({ x: e.clientX, y: e.clientY, entry: item });
                           }}
-                          className={`p-2.5 rounded-[8px] flex flex-col items-center text-center gap-2 cursor-pointer transition-all relative ${
+                          className={`p-[2px] rounded-[9px] cursor-pointer transition-all relative ${
                             isSel
-                              ? 'border-[2px] border-[#0063B8] dark:border-[#4CC2FF] bg-[#0063B8]/[0.06] dark:bg-white/[0.05]'
-                              : 'border-[2px] border-transparent bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                              ? 'border-[2px] border-[#5B35E5] dark:border-[#5229DB] shadow-[0_0_0_1px_rgba(0,0,0,0.24)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.45)]'
+                              : 'border-[2px] border-transparent'
                           }`}
                         >
-                          {isSel && (
-                            <span
-                              className="fluent-3d-icon absolute top-2 left-2 w-[16px] h-[16px] rounded-[4px] flex items-center justify-center"
-                              style={{ backgroundColor: accentColor }}
-                            >
-                              <Check className="w-3 h-3 stroke-[2.6]" style={{ color: accentForeground, stroke: accentForeground }} />
-                            </span>
-                          )}
-                          <ExplorerItemIcon entry={item} size="lg" />
-                          <div className="w-full text-[12px] font-medium truncate" title={item.name}>
-                            {getDisplayName(item)}
-                          </div>
-                          <div className="text-[10.5px] text-black/55 dark:text-white/55 truncate w-full">
-                            {item.kind === 'folder' ? item.locationLabel : formatBytes(item.sizeBytes)}
+                          <div
+                            className={`rounded-[6px] p-2.5 flex flex-col gap-2 text-left h-full transition-colors ${
+                              isSel
+                                ? 'bg-white dark:bg-[#1f2025] border border-transparent'
+                                : 'bg-black/[0.025] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
+                            }`}
+                          >
+                            <div className="flex items-start gap-2 min-w-0">
+                              <Pencil className="w-3.5 h-3.5 mt-0.5 shrink-0 opacity-75" />
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[11.5px] font-semibold truncate leading-tight">
+                                  {item.status === 'cloud' ? 'Synced online' : 'Recently modified'}
+                                </div>
+                                <div className="text-[10.5px] text-black/55 dark:text-white/55 truncate leading-tight tabular-nums">
+                                  {formatDateTime(item.modifiedAt)}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="w-full h-[78px] rounded-[4px] overflow-hidden bg-black/[0.04] dark:bg-[#14161b] flex items-center justify-center shrink-0">
+                              {item.thumbnailUrl ? (
+                                <img src={item.thumbnailUrl} alt={item.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <ExplorerItemIcon entry={item} size="lg" />
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 min-w-0 pt-0.5">
+                              {item.thumbnailUrl ? (
+                                <img
+                                  src={item.thumbnailUrl}
+                                  alt=""
+                                  className="w-5 h-4 rounded-[2px] object-cover shrink-0 border border-black/10 dark:border-white/10"
+                                />
+                              ) : (
+                                <ExplorerItemIcon entry={item} size="sm" />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[12.5px] font-semibold truncate leading-tight" title={item.name}>
+                                  {getDisplayName(item)}
+                                </div>
+                                <div className="text-[10.5px] text-black/55 dark:text-white/55 truncate leading-tight mt-0.5">
+                                  {item.kind === 'folder' ? item.locationLabel : formatBytes(item.sizeBytes)}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </motion.div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="w-full space-y-1">
+                  <div className="w-full space-y-0.5">
                     {viewMode === 'details' && !effectiveCompact && (
                       <motion.div
                         variants={explorerItemSlideUpVariant}
                         initial={itemAnimInitial}
                         animate="visible"
                         custom={currentDirId === 'dir-home' ? 4 : 0}
-                        className="flex items-center px-3 py-1.5 border-b border-black/[0.07] dark:border-white/[0.08] text-[11.5px] font-medium text-black/60 dark:text-white/60"
+                        className="flex items-center px-3 py-1.5 mb-1 border-b border-black/[0.05] dark:border-white/[0.05] text-[12px] font-medium text-black/65 dark:text-white/65"
                       >
                         <div
                           onClick={() => {
                             if (sortField === 'name') setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
                             else setSortField('name');
                           }}
-                          className="flex-1 min-w-0 pl-8 cursor-pointer hover:text-black dark:hover:text-white"
+                          className="flex-1 min-w-[140px] pr-3 border-r border-black/[0.08] dark:border-white/[0.08] flex items-center gap-1.5 cursor-pointer hover:text-black dark:hover:text-white"
                         >
-                          Name
+                          <span>Name</span>
+                          {sortField === 'name' &&
+                            (sortOrder === 'asc' ? <ChevronUp className="w-3 h-3 opacity-80" /> : <ChevronDown className="w-3 h-3 opacity-80" />)}
                         </div>
-                        <div className="w-20 shrink-0 hidden sm:block" />
+                        {fePrefs.showStatusBadges && (
+                          <div className="w-[100px] px-3 border-r border-black/[0.08] dark:border-white/[0.08] shrink-0 hidden md:flex items-center">
+                            Status
+                          </div>
+                        )}
                         <div
                           onClick={() => {
                             if (sortField === 'modifiedAt') setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
                             else setSortField('modifiedAt');
                           }}
-                          className="w-[138px] shrink-0 hidden sm:block cursor-pointer hover:text-black dark:hover:text-white"
+                          className="w-[148px] px-3 border-r border-black/[0.08] dark:border-white/[0.08] shrink-0 hidden sm:flex items-center gap-1.5 cursor-pointer hover:text-black dark:hover:text-white"
                         >
-                          Date modified
+                          <span>Date modified</span>
+                          {sortField === 'modifiedAt' &&
+                            (sortOrder === 'asc' ? <ChevronUp className="w-3 h-3 opacity-80" /> : <ChevronDown className="w-3 h-3 opacity-80" />)}
                         </div>
-                        {fePrefs.showStatusBadges && (
-                          <div className="w-12 text-center shrink-0 hidden md:block">Status</div>
-                        )}
                         <div
                           onClick={() => {
                             if (sortField === 'sizeBytes') setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
                             else setSortField('sizeBytes');
                           }}
-                          className="w-16 text-right shrink-0 cursor-pointer hover:text-black dark:hover:text-white"
+                          className="w-[82px] pl-3 text-right shrink-0 flex items-center justify-end gap-1 cursor-pointer hover:text-black dark:hover:text-white"
                         >
-                          Size
+                          <span>Size</span>
+                          {sortField === 'sizeBytes' &&
+                            (sortOrder === 'asc' ? <ChevronUp className="w-3 h-3 opacity-80" /> : <ChevronDown className="w-3 h-3 opacity-80" />)}
                         </div>
                       </motion.div>
                     )}
 
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {visibleEntries.map((item, idx) => {
                         const isSel = selectedEntry?.id === item.id;
                         return (
@@ -3915,122 +4129,88 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
                               setSelectedId(item.id);
                               setContextMenu({ x: e.clientX, y: e.clientY, entry: item });
                             }}
-                            className={`group px-2.5 rounded-[6px] flex items-center gap-3 cursor-pointer transition-colors ${
-                              effectiveCompact ? 'py-1.5 min-h-[32px]' : 'py-2 min-h-[48px]'
+                            className={`group px-3 rounded-[6px] flex items-center cursor-pointer transition-colors ${
+                              effectiveCompact ? 'py-1 min-h-[30px]' : 'py-1.5 min-h-[36px]'
                             } ${
                               isSel
-                                ? 'border-[2px] border-[#0063B8] dark:border-[#4CC2FF] bg-[#0063B8]/[0.05] dark:bg-white/[0.04]'
-                                : 'border-[2px] border-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+                                ? 'border-[2px] border-[#5B35E5] dark:border-[#5229DB] bg-[#5B35E5]/[0.035] dark:bg-white/[0.015]'
+                                : 'border-[2px] border-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.045]'
                             } ${clipboard?.mode === 'cut' && clipboard.entryId === item.id ? 'opacity-50' : ''}`}
                           >
-                            {/* Selection Checkbox matching reference screenshot */}
-                            <button
-                              type="button"
-                              aria-label={`Select ${item.name}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedId(item.id);
-                              }}
-                              className={`fluent-3d-icon w-[18px] h-[18px] rounded-[4px] flex items-center justify-center shrink-0 cursor-pointer transition-opacity ${
-                                isSel
-                                  ? 'opacity-100 border-none'
-                                  : 'opacity-0 group-hover:opacity-100 border border-black/30 dark:border-white/35 bg-transparent'
-                              }`}
-                              style={isSel ? { backgroundColor: accentColor } : undefined}
-                            >
-                              {isSel && (
-                                <Check
-                                  className="w-3.5 h-3.5 stroke-[2.6]"
-                                  style={{ color: accentForeground, stroke: accentForeground }}
-                                />
-                              )}
-                            </button>
-
-                            {/* File Thumbnail / 3D Icon */}
-                            {item.kind === 'image' && item.thumbnailUrl && !effectiveCompact ? (
-                              <div className="w-[34px] h-[22px] rounded-[3px] overflow-hidden border border-black/10 dark:border-white/15 shrink-0 bg-black/15">
-                                <img
-                                  src={item.thumbnailUrl}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <ExplorerItemIcon entry={item} size="sm" />
-                            )}
-
-                            {/* File Name + Location Subtitle (2-line stack in Details view, matching screenshot) */}
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[13px] font-medium truncate leading-tight">
-                                {getDisplayName(item)}
-                              </div>
-                              {!effectiveCompact && (
-                                <div className="text-[11.5px] text-black/55 dark:text-white/55 truncate leading-tight mt-0.5">
-                                  {item.locationLabel}
+                            {/* Column 1: Icon + Single-line Name + Quick Hover Actions */}
+                            <div className="flex-1 min-w-0 pr-3 flex items-center gap-2.5">
+                              {item.kind === 'image' && item.thumbnailUrl && !effectiveCompact ? (
+                                <div className="w-5 h-5 rounded-[3px] overflow-hidden border border-black/10 dark:border-white/15 shrink-0 bg-black/15">
+                                  <img
+                                    src={item.thumbnailUrl}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover"
+                                  />
                                 </div>
+                              ) : (
+                                <ExplorerItemIcon entry={item} size="sm" />
                               )}
-                            </div>
 
-                            {/* Quick Row Actions (Open folder & More ... matching screenshot) */}
-                            <div
-                              className={`flex items-center gap-1 shrink-0 transition-opacity ${
-                                isSel ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                              }`}
-                            >
-                              <button
-                                type="button"
-                                title="Open containing location"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (item.targetDirId) navigateToDir(item.targetDirId);
-                                  else navigateToDir(item.parentId || 'dir-home');
-                                }}
-                                className="w-7 h-7 rounded-[5px] flex items-center justify-center hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border-none bg-transparent cursor-pointer"
-                              >
-                                <Folder className="w-4 h-4 opacity-75" />
-                              </button>
-                              <button
-                                type="button"
-                                title="More options"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedId(item.id);
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setContextMenu({ x: rect.left, y: rect.bottom + 4, entry: item });
-                                }}
-                                className="w-7 h-7 rounded-[5px] flex items-center justify-center hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border-none bg-transparent cursor-pointer"
-                              >
-                                <MoreHorizontal className="w-4 h-4 opacity-80" />
-                              </button>
-                            </div>
+                              <span className="text-[12.5px] font-normal truncate leading-tight flex-1" title={item.name}>
+                                {getDisplayName(item)}
+                              </span>
 
-                            {/* Date Modified */}
-                            {viewMode === 'details' && (
-                              <div className="w-[138px] shrink-0 text-[12px] text-black/65 dark:text-white/65 tabular-nums whitespace-nowrap hidden sm:block">
-                                {formatDateTime(item.modifiedAt)}
+                              {/* Subtle Quick Row Actions */}
+                              <div
+                                className={`flex items-center gap-0.5 shrink-0 transition-opacity ${
+                                  isSel ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                }`}
+                              >
+                                <button
+                                  type="button"
+                                  title="Open containing location"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (item.targetDirId) navigateToDir(item.targetDirId);
+                                    else navigateToDir(item.parentId || 'dir-home');
+                                  }}
+                                  className="w-6 h-6 rounded-[4px] flex items-center justify-center hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border-none bg-transparent cursor-pointer"
+                                >
+                                  <Folder className="w-3.5 h-3.5 opacity-70" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="More options"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedId(item.id);
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setContextMenu({ x: rect.left, y: rect.bottom + 4, entry: item });
+                                  }}
+                                  className="w-6 h-6 rounded-[4px] flex items-center justify-center hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border-none bg-transparent cursor-pointer"
+                                >
+                                  <MoreHorizontal className="w-3.5 h-3.5 opacity-75" />
+                                </button>
                               </div>
-                            )}
+                            </div>
 
-                            {/* Sync Status */}
+                            {/* Column 2: Status */}
                             {fePrefs.showStatusBadges && (
-                              <div className="w-10 text-center shrink-0 hidden md:flex items-center justify-center">
+                              <div className="w-[100px] px-3 shrink-0 hidden md:flex items-center gap-1.5 text-[12px] text-black/60 dark:text-white/60 truncate">
                                 {item.status === 'cloud' ? (
-                                  <span
-                                    className="fluent-3d-icon w-2.5 h-2.5 rounded-full inline-block"
-                                    style={{ backgroundColor: '#0284c7' }}
-                                    title="Available online"
-                                  />
+                                  <span>Cloud</span>
+                                ) : item.status === 'synced' ? (
+                                  <span>Synced</span>
                                 ) : (
-                                  <CheckCircle2
-                                    className="w-3.5 h-3.5 fluent-3d-icon"
-                                    style={{ color: '#16a34a', stroke: '#16a34a' }}
-                                  />
+                                  <span>Local</span>
                                 )}
                               </div>
                             )}
 
-                            {/* File Size */}
-                            <div className="w-16 text-right text-[12px] text-black/65 dark:text-white/65 tabular-nums whitespace-nowrap shrink-0">
+                            {/* Column 3: Date Modified */}
+                            {viewMode === 'details' && (
+                              <div className="w-[148px] px-3 shrink-0 text-[12px] text-black/60 dark:text-white/60 tabular-nums whitespace-nowrap hidden sm:block truncate">
+                                {formatDateTime(item.modifiedAt)}
+                              </div>
+                            )}
+
+                            {/* Column 4: File Size */}
+                            <div className="w-[82px] pl-3 text-right text-[12px] text-black/60 dark:text-white/60 tabular-nums whitespace-nowrap shrink-0">
                               {item.kind === 'folder' ? '—' : formatBytes(item.sizeBytes)}
                             </div>
                           </motion.div>
@@ -4049,12 +4229,12 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
         <AnimatePresence initial={false}>
           {showDetailsPane && !isSettingsView && (
             <motion.aside
-              initial={{ width: 0, opacity: 0, marginRight: 0, marginLeft: 0 }}
-              animate={{ width: 268, opacity: 1, marginRight: 8, marginLeft: 2 }}
-              exit={{ width: 0, opacity: 0, marginRight: 0, marginLeft: 0 }}
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 268, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               style={{ maxWidth: '45vw' }}
-              className="flex flex-col shrink-0 my-2 rounded-[8px] bg-white/85 dark:bg-[#22262e]/85 border border-black/[0.06] dark:border-white/[0.07] overflow-hidden"
+              className="flex flex-col shrink-0 bg-[#f8fafc] dark:bg-[#1c1c1c] border-l border-black/[0.06] dark:border-white/[0.06] overflow-hidden"
             >
               <div className="w-[268px] flex-1 overflow-y-auto sidebar-scroller p-3.5 space-y-4">
                 {selectedEntry ? (
@@ -4188,7 +4368,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({ navigate }) => {
       </div>
 
       {/* 5. BOTTOM STATUS BAR */}
-      <div className="h-[28px] px-3.5 flex items-center justify-between text-[11.5px] text-black/65 dark:text-white/65 border-t border-black/[0.06] dark:border-white/[0.07] bg-[#f3f5f8]/95 dark:bg-[#191c22]/95 shrink-0">
+      <div className="h-[28px] px-4 flex items-center justify-between text-[11.5px] text-black/65 dark:text-white/65 border-t border-black/[0.06] dark:border-white/[0.06] bg-[#f3f5f8] dark:bg-[#191919] shrink-0">
         <div className="flex items-center gap-2.5 truncate">
           <span>{visibleEntries.length} items</span>
           {selectedEntry && (

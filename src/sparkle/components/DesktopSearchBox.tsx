@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Globe, Search, ExternalLink, X } from "lucide-react";
-import { useSettings, WINDOWS_TOPBAR_HEIGHT_PX } from "../hooks/useSettings";
+import { useSettings, getTopbarHeightPx } from "../hooks/useSettings";
 import { useNotes } from "../context/NotesContext";
 import { TabIcon } from "./SparkleTabBar";
 import type { Channel } from "../types";
@@ -24,6 +24,7 @@ export const DesktopSearchBox: React.FC<DesktopSearchBoxProps> = ({
   const { notes, setActiveNoteId } = useNotes();
   const isLightMode = settings.theme === "light";
   const dynamicIcons = settings.dynamicSidebarIcons !== false;
+  const topbarHeight = getTopbarHeightPx(settings.taskbarScale, Boolean(settings.floatBar));
 
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -107,7 +108,7 @@ export const DesktopSearchBox: React.FC<DesktopSearchBoxProps> = ({
       ref={containerRef}
       id="sparkle-desktop-search-widget"
       onMouseDown={(e) => e.stopPropagation()}
-      style={{ top: `${WINDOWS_TOPBAR_HEIGHT_PX + 38}px` }}
+      style={{ top: `${topbarHeight + 36}px` }}
       className="absolute left-1/2 -translate-x-1/2 z-[2] w-[min(560px,calc(100%-32px))] pointer-events-auto select-none"
     >
       <form

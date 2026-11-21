@@ -57,7 +57,7 @@ import { FileExplorer } from './screens/FileExplorer';
 import { CHANNELS_DATA } from './data/channels';
 import { NEWS_DATA } from './data/news';
 import { Channel, NewsArticle } from './types';
-import { useSettings, getTaskbarHeightPx, WINDOWS_TOPBAR_HEIGHT_PX } from './hooks/useSettings';
+import { useSettings, getTaskbarHeightPx, getTopbarHeightPx } from './hooks/useSettings';
 import { getWallpaperById } from './constants/wallpapers';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { type AppTab } from './components/SparkleTabBar';
@@ -68,7 +68,7 @@ import { WindowsContextMenu } from './components/WindowsContextMenu';
 import { DirectCommandFlyout } from './components/DirectCommandFlyout';
 import { SparkleOsTopbar } from './components/SparkleOsTopbar';
 import { DesktopSearchBox } from './components/DesktopSearchBox';
-import { Plus, RefreshCw, Monitor, Sun, Moon, Sparkles, Palette, LogOut } from 'lucide-react';
+import { Plus, RefreshCw, Monitor, Sun, Moon, Sparkles, Palette, LogOut, Search } from 'lucide-react';
 
 export function getRouteTitle(route: string, channel?: Channel): string {
   if (route === '/' || route === '/home' || route === '/home-preview') return 'Home';
@@ -169,6 +169,7 @@ export default function App() {
   // Windows Mode state & floating window geometry
   const isWindowsMode = Boolean(settings.windowsMode);
   const taskbarHeight = getTaskbarHeightPx(settings.taskbarScale);
+  const topbarHeight = getTopbarHeightPx(settings.taskbarScale, Boolean(settings.floatBar));
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const [isDirectCommandOpen, setIsDirectCommandOpen] = useState(false);
   const [desktopContextMenu, setDesktopContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -204,22 +205,22 @@ export default function App() {
       if (isMobileVw) {
         return {
           x: 0,
-          y: WINDOWS_TOPBAR_HEIGHT_PX,
+          y: topbarHeight,
           width: vw,
-          height: Math.max(320, vh - taskbarHeight - WINDOWS_TOPBAR_HEIGHT_PX),
+          height: Math.max(320, vh - taskbarHeight - topbarHeight),
           isMinimized: false,
           isMaximized: true,
           zIndex,
         };
       }
       const availW = Math.max(420, vw);
-      const availH = Math.max(320, vh - taskbarHeight - WINDOWS_TOPBAR_HEIGHT_PX);
+      const availH = Math.max(320, vh - taskbarHeight - topbarHeight);
       const width = Math.min(1040, Math.max(460, availW - 96));
       const height = Math.min(640, Math.max(340, availH - 72));
       const offsetIdx = index % 6;
       const baseLeft = 36;
       const x = Math.min(baseLeft + offsetIdx * 28, Math.max(baseLeft, vw - width - 16));
-      const y = Math.min(WINDOWS_TOPBAR_HEIGHT_PX + 20 + offsetIdx * 24, Math.max(WINDOWS_TOPBAR_HEIGHT_PX + 12, vh - taskbarHeight - height - 16));
+      const y = Math.min(topbarHeight + 20 + offsetIdx * 24, Math.max(topbarHeight + 12, vh - taskbarHeight - height - 16));
       return {
         x,
         y,
@@ -230,7 +231,7 @@ export default function App() {
         zIndex,
       };
     },
-    [taskbarHeight]
+    [taskbarHeight, topbarHeight]
   );
 
   // Ensure every tab has a windowState when Windows Mode is active, and close Start Menu on exit
@@ -1647,7 +1648,7 @@ export default function App() {
             {/* Desktop-only Insider Evaluation Watermark (always visible in SparkleOS Mode, behind all windows & UIs) */}
             {isSplashFinished && <EvaluationWatermark isTaskbarFloating={isTaskbarFloating} />}
             {/* Desktop Search Box Widget (Picture 2) */}
-            {isSplashFinished && (
+            {isSplashFinished && settings.showDesktopSearch !== false && (
               <DesktopSearchBox
                 channels={channels}
                 onSelectChannel={setCurrentChannel}
@@ -1846,6 +1847,13 @@ export default function App() {
                     label: 'Show desktop',
                     icon: <Monitor className="w-4 h-4" />,
                     onSelect: handleShowDesktop,
+                  },
+                  {
+                    id: 'desk-show-search',
+                    label: 'Show search',
+                    icon: <Search className="w-4 h-4" />,
+                    checked: settings.showDesktopSearch !== false,
+                    onSelect: () => updateSetting('showDesktopSearch', !(settings.showDesktopSearch !== false)),
                   },
                   { id: 'desk-div-1', divider: true },
                   {

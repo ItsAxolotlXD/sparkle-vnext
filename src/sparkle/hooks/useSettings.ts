@@ -51,6 +51,7 @@ export interface SystemSettings {
   windowsMode: boolean;
   floatBar: boolean;
   floatBarVersion?: number;
+  showDesktopSearch: boolean;
   windowsWallpaper: string;
   windowsWallpaperVersion?: number;
   windowsUiScale: 'small' | 'default' | 'large';
@@ -121,6 +122,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   windowsMode: false,
   floatBar: true,
   floatBarVersion: 1,
+  showDesktopSearch: true,
   windowsWallpaper: 'vnext-flow-dark',
   windowsWallpaperVersion: 2,
   windowsUiScale: 'default',
@@ -142,7 +144,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 };
 
 export const FLOAT_BAR_BOTTOM_GAP_PX = 10;
-export const WINDOWS_TOPBAR_HEIGHT_PX = 36;
+export const WINDOWS_TOPBAR_HEIGHT_PX = 44;
 
 export const getTaskbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloating = false): number => {
   if (isFloating) {
@@ -153,6 +155,10 @@ export const getTaskbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloa
   if (scale === 'small') return 40;
   if (scale === 'large') return 56;
   return 48;
+};
+
+export const getTopbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloating = true): number => {
+  return getTaskbarHeightPx(scale, isFloating);
 };
 
 export const getWindowsUiScaleMultiplier = (scale?: 'small' | 'default' | 'large'): number => {
@@ -257,6 +263,7 @@ export const getStoredSettings = (): SystemSettings => {
               : true
             : true,
         floatBarVersion: 1,
+        showDesktopSearch: typeof parsed.showDesktopSearch === 'boolean' ? parsed.showDesktopSearch : true,
         windowsWallpaper:
           parsed.windowsWallpaperVersion === 2 && WINDOWS_WALLPAPERS.some((w) => w.id === parsed.windowsWallpaper)
             ? parsed.windowsWallpaper
