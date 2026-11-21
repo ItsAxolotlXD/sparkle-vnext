@@ -189,6 +189,8 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
   const { settings, updateSetting } = useSettings();
   const { notes, setActiveNoteId } = useNotes();
   const isLightMode = settings.theme === 'light';
+  const taskbarPosition = settings.taskbarPosition || 'bottom';
+  const isVerticalTaskbar = taskbarPosition === 'left' || taskbarPosition === 'right';
   const taskbarHeight = getTaskbarHeightPx(settings.taskbarScale, isTaskbarFloating);
   const uiScaleMult = getWindowsUiScaleMultiplier(settings.windowsUiScale);
   const isLeftAligned = settings.taskbarAlignment === 'left';
@@ -554,8 +556,9 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
           {isOpen && (
             <motion.div
               key="windows-start-menu-wrapper"
-              initial={settings.reduceAllMotion ? false : { y: '100%' }}
+              initial={settings.reduceAllMotion ? false : isVerticalTaskbar ? { x: taskbarPosition === 'left' ? '-100%' : '100%' } : { y: taskbarPosition === 'top' ? '-100%' : '100%' }}
               animate={{
+                x: '0%',
                 y: '0%',
                 transition: settings.reduceAllMotion
                   ? { duration: 0 }
@@ -565,12 +568,21 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                 settings.reduceAllMotion
                   ? undefined
                   : {
-                      y: '100%',
+                      x: isVerticalTaskbar ? (taskbarPosition === 'left' ? '-100%' : '100%') : '0%',
+                      y: isVerticalTaskbar ? '0%' : (taskbarPosition === 'top' ? '-100%' : '100%'),
                       transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
                     }
               }
-              style={{ zIndex: 8990, paddingBottom: `${taskbarHeight + (isTaskbarFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0) + 8}px` }}
-              className={`fixed bottom-0 inset-x-0 flex px-3 pointer-events-none ${
+              style={{
+                zIndex: 8990,
+                position: 'fixed',
+                ...(isVerticalTaskbar
+                  ? { top: 0, bottom: 0, [taskbarPosition]: `${taskbarHeight}px`, width: `calc(100vw - ${taskbarHeight}px)`, padding: '12px', alignItems: 'center' }
+                  : taskbarPosition === 'top'
+                    ? { top: `${taskbarHeight}px`, bottom: 'auto', padding: '8px 12px 0' }
+                    : { bottom: 0, paddingBottom: `${taskbarHeight + (isTaskbarFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0) + 8}px` }),
+              }}
+              className={`fixed ${isVerticalTaskbar ? 'flex-col justify-center' : 'inset-x-0 flex'} px-3 pointer-events-none ${
                 isLeftAligned ? 'justify-center md:justify-start' : 'justify-center'
               }`}
             >
@@ -665,6 +677,12 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                     <button
                       key={app.id}
                       type="button"
+                      draggable={Boolean(app.route)}
+                      onDragStart={(e) => {
+                        if (!app.route) return;
+                        e.dataTransfer.effectAllowed = 'copy';
+                        e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: app.route, title: app.label }));
+                      }}
                       onClick={() => handleLaunchApp(app)}
                       onContextMenu={(e) => openAppContextMenu(e, app)}
                       className="h-[42px] px-2.5 rounded-[6px] flex items-center gap-3 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.99] transition-all cursor-pointer text-left border-none"
@@ -682,6 +700,12 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                     <button
                       key={app.id}
                       type="button"
+                      draggable={Boolean(app.route)}
+                      onDragStart={(e) => {
+                        if (!app.route) return;
+                        e.dataTransfer.effectAllowed = 'copy';
+                        e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: app.route, title: app.label }));
+                      }}
                       onClick={() => handleLaunchApp(app)}
                       onContextMenu={(e) => openAppContextMenu(e, app)}
                       className="group py-2.5 px-1.5 rounded-[6px] flex flex-col items-center justify-center gap-1.5 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] active:scale-95 transition-all cursor-pointer border-none"
@@ -813,8 +837,11 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                           }
                         }}
                         onDragStart={(e) => {
-                          e.dataTransfer.effectAllowed = 'move';
+                          e.dataTransfer.effectAllowed = app.route ? 'copyMove' : 'move';
                           e.dataTransfer.setData('text/plain', entryKey);
+                          if (app.route) {
+                            e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: app.route, title: app.label }));
+                          }
                           setDragState({ kind: 'pinned', entryKey });
                         }}
                         onDragOver={(e) => {

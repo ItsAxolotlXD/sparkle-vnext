@@ -11,6 +11,7 @@ export interface StartAppDef {
 
 export const START_APPS: readonly StartAppDef[] = [
   { id: 'app-home', label: 'Home', route: '/', keywords: 'home overview trang chu' },
+  { id: 'app-task-manager', label: 'Task Manager', route: '/task-manager', keywords: 'task manager processes performance startup apps windows' },
   { id: 'app-watch', label: 'Watch', route: '/live-tv', keywords: 'watch live tv channels truyen hinh' },
   { id: 'app-feed', label: 'Update blogs', route: '/news', keywords: 'feed news articles update blogs tin tuc' },
   { id: 'app-gallery', label: 'Gallery', route: '/gallery', keywords: 'gallery photos media album anh' },

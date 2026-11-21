@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { WindowsContextMenu } from './WindowsContextMenu';
 import { contextMenuUpMotionProps, flyoutPanelClassName, flyoutPanelStyle } from './FlyoutDropdown';
-import { useSettings, SystemSettings, getTaskbarHeightPx, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
+import { useSettings, SystemSettings, getTaskbarHeightPx, getTopbarHeightPx, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
 import { useNotes } from '../context/NotesContext';
 import { TabIcon, type AppTab } from './SparkleTabBar';
 import { type AppWindowState } from './WindowFrame';
@@ -177,7 +177,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
     const ws = windowStates[t.id];
     return Boolean(ws && ws.isMaximized && !ws.isMinimized);
   });
-  const isFloating = Boolean(settings.floatBar) && !hasMaximizedWindow;
+  const taskbarPosition = settings.taskbarPosition || 'bottom';
+  const isVerticalTaskbar = taskbarPosition === 'left' || taskbarPosition === 'right';
+  const isFloating = Boolean(settings.floatBar) && !hasMaximizedWindow && !isVerticalTaskbar;
   const taskbarHeight = getTaskbarHeightPx(taskbarScale, isFloating);
   const effectiveTaskbarBottom = isFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0;
   const flyoutBottomOffset = taskbarHeight + effectiveTaskbarBottom + 8;
@@ -330,18 +332,22 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
-      const time = now.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-      const date = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+      const time = isVerticalTaskbar
+        ? `${now.getHours() % 12 || 12}:${String(now.getMinutes()).padStart(2, '0')}`
+        : now.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+          });
+      const date = isVerticalTaskbar
+        ? `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`
+        : `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
       setClockText({ time, date });
     };
     updateClock();
     const timer = setInterval(updateClock, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isVerticalTaskbar]);
 
   // Search box & Trending Search UI state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1393,7 +1399,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
 
   return (
     <>
-      <footer
+      <motion.footer
+        layout="position"
+        transition={{ layout: settings.reduceAllMotion ? { duration: 0 } : { type: 'spring', stiffness: 320, damping: 32 } }}
         id="windows-taskbar"
         role="region"
         aria-label="Sparkle Taskbar"
@@ -1406,10 +1414,14 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
         }}
         style={{
           height: `${taskbarHeight}px`,
-          bottom: `${effectiveTaskbarBottom}px`,
-          left: isFloating ? '12px' : '0px',
-          right: isFloating ? '12px' : '0px',
-          borderRadius: isFloating ? '14px' : '0px',
+          bottom: taskbarPosition === 'bottom' ? `${effectiveTaskbarBottom}px` : 'auto',
+          top: taskbarPosition === 'top' || taskbarPosition === 'left' || taskbarPosition === 'right' ? '0px' : 'auto',
+          left: taskbarPosition === 'left' ? '0px' : isVerticalTaskbar ? 'auto' : isFloating ? '12px' : '0px',
+          right: taskbarPosition === 'right' ? '0px' : isVerticalTaskbar ? 'auto' : isFloating ? '12px' : '0px',
+          width: isVerticalTaskbar ? `${taskbarHeight}px` : 'auto',
+          height: isVerticalTaskbar ? '100dvh' : `${taskbarHeight}px`,
+          flexDirection: isVerticalTaskbar ? 'column' : 'row',
+          borderRadius: isFloating && !isVerticalTaskbar ? '14px' : '0px',
           backgroundColor: isLightMode ? 'rgba(226, 233, 243, 0.76)' : 'rgba(28, 30, 36, 0.80)',
           backdropFilter: 'blur(36px) saturate(165%)',
           WebkitBackdropFilter: 'blur(36px) saturate(165%)',
@@ -1417,12 +1429,12 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
           outline: 'none',
           boxShadow: 'none',
         }}
-        className={`fixed z-[9000] border-0 outline-none flex items-center justify-between px-2 sm:px-3 select-none text-[#111827] dark:text-white transition-[left,right,bottom,border-radius,height,box-shadow] duration-200 ease-out ${
+        className={`fixed z-[9000] border-0 outline-none flex ${isVerticalTaskbar ? 'flex-col justify-start py-2 px-1' : 'items-center justify-between px-2 sm:px-3'} select-none text-[#111827] dark:text-white transition-[left,right,bottom,border-radius,height,box-shadow] duration-200 ease-out ${
           isFloating ? 'windows-taskbar-floating' : ''
         }`}
       >
         {/* 1. Left: Weather Widget (hidden on left when taskbar alignment is left so Start sits flush left) */}
-        {!isLeftAligned && (
+        {!isLeftAligned && !isVerticalTaskbar && (
           <button
             id="btn-taskbar-weather"
             type="button"
@@ -1448,8 +1460,8 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
 
         {/* 2. Main Cluster: Start + Search (Box or Button) + Task View + Taskbar App Icons */}
         <div
-          className={`flex items-center gap-1 sm:gap-1.5 flex-1 min-w-0 max-w-full overflow-x-auto no-scrollbar ${
-            isLeftAligned
+          className={`flex ${isVerticalTaskbar ? 'flex-col flex-none max-h-full overflow-y-auto overflow-x-hidden' : 'items-center flex-1 min-w-0 max-w-full overflow-x-auto'} gap-1 sm:gap-1.5 no-scrollbar ${
+            isVerticalTaskbar || isLeftAligned
               ? 'justify-start'
               : 'justify-center md:flex-none md:absolute md:left-1/2 md:-translate-x-1/2'
           }`}
@@ -1487,7 +1499,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
 
           {/* Search Box or Search Icon Button based on taskbarSearchStyle */}
           <div ref={searchBoxRef} className="relative shrink-0">
-            {isSearchButtonMode ? (
+            {isVerticalTaskbar || isSearchButtonMode ? (
               <button
                 id="windows-taskbar-search-btn"
                 type="button"
@@ -1600,8 +1612,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   {isSearchOpen && (
                     <motion.div
                       key="windows-taskbar-search-flyout-wrapper"
-                      initial={settings.reduceAllMotion ? false : { y: '100%' }}
+                      initial={settings.reduceAllMotion ? false : isVerticalTaskbar ? { x: taskbarPosition === 'left' ? '-100%' : '100%' } : { y: taskbarPosition === 'top' ? '-100%' : '100%' }}
                       animate={{
+                        x: '0%',
                         y: '0%',
                         transition: settings.reduceAllMotion
                           ? { duration: 0 }
@@ -1611,12 +1624,21 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                         settings.reduceAllMotion
                           ? undefined
                           : {
-                              y: '100%',
+                              x: isVerticalTaskbar ? (taskbarPosition === 'left' ? '-100%' : '100%') : '0%',
+                              y: isVerticalTaskbar ? '0%' : (taskbarPosition === 'top' ? '-100%' : '100%'),
                               transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
                             }
                       }
-                      style={{ zIndex: 8990, paddingBottom: `${flyoutBottomOffset}px` }}
-                      className={`fixed bottom-0 inset-x-0 flex px-3 pointer-events-none ${
+                      style={{
+                        zIndex: 8990,
+                        position: 'fixed',
+                        ...(isVerticalTaskbar
+                          ? { top: 0, bottom: 0, [taskbarPosition]: `${taskbarHeight}px`, width: `calc(100vw - ${taskbarHeight}px)`, padding: '12px', alignItems: 'center' }
+                          : taskbarPosition === 'top'
+                            ? { top: `${taskbarHeight}px`, bottom: 'auto', padding: '8px 12px 0' }
+                            : { bottom: 0, paddingBottom: `${flyoutBottomOffset}px` }),
+                      }}
+                      className={`fixed ${isVerticalTaskbar ? 'flex-col justify-center' : 'inset-x-0 flex'} px-3 pointer-events-none ${
                         isLeftAligned ? 'justify-center md:justify-start' : 'justify-center'
                       }`}
                     >
@@ -1871,8 +1893,9 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   {isTaskViewOpen && (
                     <motion.div
                       key="windows-taskbar-taskview-wrapper"
-                      initial={settings.reduceAllMotion ? false : { y: '100%' }}
+                      initial={settings.reduceAllMotion ? false : isVerticalTaskbar ? { x: taskbarPosition === 'left' ? '-100%' : '100%' } : { y: taskbarPosition === 'top' ? '-100%' : '100%' }}
                       animate={{
+                        x: '0%',
                         y: '0%',
                         transition: settings.reduceAllMotion
                           ? { duration: 0 }
@@ -1882,12 +1905,21 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                         settings.reduceAllMotion
                           ? undefined
                           : {
-                              y: '100%',
+                              x: isVerticalTaskbar ? (taskbarPosition === 'left' ? '-100%' : '100%') : '0%',
+                              y: isVerticalTaskbar ? '0%' : (taskbarPosition === 'top' ? '-100%' : '100%'),
                               transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
                             }
                       }
-                      style={{ zIndex: 8990, paddingBottom: `${flyoutBottomOffset}px` }}
-                      className={`fixed bottom-0 inset-x-0 flex px-3 pointer-events-none ${
+                      style={{
+                        zIndex: 8990,
+                        position: 'fixed',
+                        ...(isVerticalTaskbar
+                          ? { top: 0, bottom: 0, [taskbarPosition]: `${taskbarHeight}px`, width: `calc(100vw - ${taskbarHeight}px)`, padding: '12px', alignItems: 'center' }
+                          : taskbarPosition === 'top'
+                            ? { top: `${taskbarHeight}px`, bottom: 'auto', padding: '8px 12px 0' }
+                            : { bottom: 0, paddingBottom: `${flyoutBottomOffset}px` }),
+                      }}
+                      className={`fixed ${isVerticalTaskbar ? 'flex-col justify-center' : 'inset-x-0 flex'} px-3 pointer-events-none ${
                         isLeftAligned ? 'justify-center md:justify-start' : 'justify-center'
                       }`}
                     >
@@ -2187,9 +2219,10 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   }
                 }}
                 onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = 'move';
-                  e.dataTransfer.setData('text/plain', slot.key);
-                  setHoverTooltip(null);
+                      e.dataTransfer.effectAllowed = 'copyMove';
+                      e.dataTransfer.setData('text/plain', slot.key);
+                      e.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ route: pinned.route, title: pinned.title }));
+                      setHoverTooltip(null);
                   setDraggedSlotKey(slot.key);
                 }}
                 onDragOver={(e) => {
@@ -2251,7 +2284,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
         </div>
 
         {/* 3. Right System Tray: ^ Overflow, Wi-Fi + Volume (Control Center), Clock + Date, Direct Command, Show Desktop */}
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 h-full">
+        <div className={`flex ${isVerticalTaskbar ? 'flex-col w-full items-center gap-1 h-auto shrink-0' : 'items-center gap-0.5 sm:gap-1 shrink-0 h-full'}`}>
           {isLeftAligned && (
             <button
               id="btn-taskbar-weather"
@@ -2297,23 +2330,18 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   exit={{ opacity: 0, y: 10, scale: 0.96 }}
                   transition={{ duration: 0.14 }}
                   style={{
-                    bottom: `${flyoutBottomOffset}px`,
+                    ...(isVerticalTaskbar
+                      ? taskbarPosition === 'left'
+                        ? { left: `${taskbarHeight + 8}px`, right: 'auto', top: '12px', bottom: 'auto' }
+                        : { right: `${taskbarHeight + 8}px`, left: 'auto', top: '12px', bottom: 'auto' }
+                      : taskbarPosition === 'top'
+                        ? { top: `${taskbarHeight + 8}px`, bottom: 'auto', right: '12px' }
+                        : { bottom: `${flyoutBottomOffset}px`, right: '12px' }),
                     backgroundColor: isLightMode ? 'rgba(245, 245, 247, 0.92)' : 'rgba(30, 32, 37, 0.92)',
                     backdropFilter: 'blur(28px)',
                   }}
-                  className="fixed right-12 w-[195px] p-1.5 rounded-[10px] border border-black/10 dark:border-white/[0.12] shadow-2xl space-y-0.5 z-[9500]"
+                  className="fixed w-[195px] p-1.5 rounded-[10px] border border-black/10 dark:border-white/[0.12] shadow-2xl space-y-0.5 z-[9500]"
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      updateSetting('nativeKeyboard', !settings.nativeKeyboard);
-                      setIsTrayOverflowOpen(false);
-                    }}
-                    className="w-full h-8 px-2.5 rounded-[6px] flex items-center gap-2.5 text-[12px] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] cursor-pointer text-left border-none"
-                  >
-                    <Keyboard className="w-3.5 h-3.5" />
-                    <span>{settings.nativeKeyboard ? 'Hide touch keyboard' : 'Touch keyboard'}</span>
-                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -2365,9 +2393,10 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
               {isQuickSettingsOpen && (
                 <motion.div
                   ref={quickSettingsRef}
-                  initial={settings.reduceAllMotion ? false : { x: '110%', opacity: 0 }}
+                  initial={settings.reduceAllMotion ? false : isVerticalTaskbar ? { x: taskbarPosition === 'left' ? '-24px' : '24px', opacity: 0 } : taskbarPosition === 'top' ? { y: '-24px', opacity: 0 } : { y: '24px', opacity: 0 }}
                   animate={{
                     x: 0,
+                    y: 0,
                     opacity: 1,
                     transition: settings.reduceAllMotion
                       ? { duration: 0 }
@@ -2376,18 +2405,38 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                   exit={
                     settings.reduceAllMotion
                       ? undefined
-                      : {
-                          x: '110%',
-                          opacity: 0,
-                          transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-                        }
+                        : {
+                            x: isVerticalTaskbar ? (taskbarPosition === 'left' ? '-24px' : '24px') : 0,
+                            y: isVerticalTaskbar ? 0 : taskbarPosition === 'top' ? '-24px' : '24px',
+                            opacity: 0,
+                            transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+                          }
                   }
                   style={{
-                    bottom: `${flyoutBottomOffset}px`,
+                    ...(isVerticalTaskbar
+                      ? taskbarPosition === 'left'
+                        ? { left: `${taskbarHeight + 8}px`, right: 'auto', top: '12px', bottom: 'auto' }
+                        : { right: `${taskbarHeight + 8}px`, left: 'auto', top: '12px', bottom: 'auto' }
+                      : taskbarPosition === 'top'
+                        ? { top: `${taskbarHeight + 8}px`, bottom: 'auto', right: '12px' }
+                        : { bottom: `${flyoutBottomOffset}px`, right: '12px' }),
                   }}
-                  className="windows-mica-frame fixed right-3 w-[300px] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-2xl p-3.5 space-y-3 z-[9500]"
+                  className="windows-mica-frame fixed w-[300px] max-w-[calc(100vw-5rem)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-2xl p-3.5 space-y-3 z-[9500]"
                 >
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateSetting('nativeKeyboard', !settings.nativeKeyboard)}
+                      aria-pressed={Boolean(settings.nativeKeyboard)}
+                      className={`h-[56px] rounded-[8px] flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors cursor-pointer border ${
+                        settings.nativeKeyboard
+                          ? 'bg-[#0078d4] text-white border-[#0078d4]'
+                          : 'bg-black/[0.05] dark:bg-white/[0.08] border-black/[0.06] dark:border-white/[0.08] hover:bg-black/10 dark:hover:bg-white/[0.12]'
+                      }`}
+                    >
+                      <Keyboard className="w-4 h-4" />
+                      <span>Keyboard</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => updateSetting('theme', settings.theme === 'light' ? 'dark' : 'light')}
@@ -2461,7 +2510,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                 onCloseDirectCommand();
                 setIsQuickSettingsOpen((prev) => !prev);
               }}
-              className={`${isFloating ? (taskbarScale === 'small' ? 'h-[28px]' : 'h-[34px]') : 'h-[36px]'} pl-2 pr-1 rounded-[5px] flex flex-col items-end justify-center leading-[1.15] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none text-right shrink-0`}
+              className={`${isVerticalTaskbar ? 'w-full h-auto min-h-[44px] px-0 items-center text-center' : `${isFloating ? (taskbarScale === 'small' ? 'h-[28px]' : 'h-[34px]') : 'h-[36px]'} pl-2 pr-1 items-end text-right`} rounded-[5px] flex flex-col justify-center leading-[1.15] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none shrink-0`}
             >
               <span className={`${clockTextSizeClass} font-normal tabular-nums`}>{clockText.time}</span>
               <span className={`${clockTextSizeClass} font-normal tabular-nums`}>{clockText.date}</span>
@@ -2499,7 +2548,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
           </div>
 
         </div>
-      </footer>
+      </motion.footer>
 
       {/* WinUI 3 Acrylic Tooltip matching Sidebar tooltip */}
       {typeof document !== 'undefined' &&
@@ -2730,20 +2779,31 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                 onSelect: onShowDesktop,
               },
               { id: 'tb-div-1', divider: true },
-              {
-                id: 'tb-touch-keyboard',
-                label: 'Touch keyboard',
-                icon: <Keyboard className="w-4 h-4" />,
-                checked: Boolean(settings.nativeKeyboard),
-                onSelect: () => updateSetting('nativeKeyboard', !settings.nativeKeyboard),
-              },
+              ...([
+                ['top', 'Top'],
+                ['bottom', 'Bottom'],
+                ['left', 'Left'],
+                ['right', 'Right'],
+              ] as const).map(([position, label]) => ({
+                id: `tb-location-${position}`,
+                label,
+                icon: <Monitor className="w-4 h-4" />,
+                checked: taskbarPosition === position,
+                onSelect: () => updateSetting('taskbarPosition', position),
+              })),
+              { id: 'tb-div-2', divider: true },
               {
                 id: 'tb-theme',
-                label: isLightMode ? 'Dark mode' : 'Light mode',
-                icon: isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />,
+                label: `Theme (${isLightMode ? 'light' : 'dark'})`,
+                icon: isLightMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />,
                 onSelect: () => updateSetting('theme', isLightMode ? 'dark' : 'light'),
               },
-              { id: 'tb-div-2', divider: true },
+              {
+                id: 'tb-task-manager',
+                label: 'Task manager',
+                icon: <Layers className="w-4 h-4" />,
+                onSelect: () => onLaunchRoute('/task-manager'),
+              },
               {
                 id: 'tb-settings',
                 label: 'Taskbar settings',

@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect, useLayoutEffect, useCallback, creat
 import { motion } from 'motion/react';
 import { Minus, Square, X, ArrowLeft } from 'lucide-react';
 import { TabIcon, type AppTab } from './SparkleTabBar';
-import { useSettings, getTaskbarHeightPx, getTopbarHeightPx, getWindowsUiScaleMultiplier, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
+import { useSettings, getTaskbarHeightPx, getWindowsUiScaleMultiplier, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
 
 export const WindowTitleBarPortalContext = createContext<{
   titleBarSlotEl: HTMLDivElement | null;
@@ -94,12 +94,20 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
   }, []);
 
   const isDesktop = viewport.width >= 768;
-  const desktopMinX = isDesktop && !isRightSidebar ? sidebarOffset : 0;
-  const desktopMaxX = isDesktop && isRightSidebar ? viewport.width - sidebarOffset : viewport.width;
+  const taskbarPosition = settings.taskbarPosition || 'bottom';
+  const desktopMinX = Math.max(
+    isDesktop && !isRightSidebar ? sidebarOffset : 0,
+    isDesktop && taskbarPosition === 'left' ? taskbarHeight : 0
+  );
+  const desktopMaxX = Math.min(
+    isDesktop && isRightSidebar ? viewport.width - sidebarOffset : viewport.width,
+    isDesktop && taskbarPosition === 'right' ? viewport.width - taskbarHeight : viewport.width
+  );
   const floatingGap = !windowState.isMaximized && isTaskbarFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0;
-  const topbarHeight = getTopbarHeightPx(settings.taskbarScale, Boolean(settings.floatBar));
-  const desktopMinY = topbarHeight;
-  const desktopMaxY = viewport.height - taskbarHeight - floatingGap;
+  const desktopMinY = taskbarPosition === 'top' ? taskbarHeight : 0;
+  const desktopMaxY = taskbarPosition === 'bottom'
+    ? viewport.height - taskbarHeight - floatingGap
+    : viewport.height;
 
   // Dragging state
   const dragRef = useRef<{

@@ -54,6 +54,7 @@ import { HtmlWriter } from './screens/HtmlWriter';
 import { PcSettings } from './screens/PcSettings';
 import { DefenderScreen } from './screens/Defender';
 import { FileExplorer } from './screens/FileExplorer';
+import { TaskManager } from './screens/TaskManager';
 import { CHANNELS_DATA } from './data/channels';
 import { NEWS_DATA } from './data/news';
 import { Channel, NewsArticle } from './types';
@@ -64,9 +65,9 @@ import { type AppTab } from './components/SparkleTabBar';
 import { WindowFrame, type AppWindowState } from './components/WindowFrame';
 import { WindowsStartMenu } from './components/WindowsStartMenu';
 import { WindowsTaskbar } from './components/WindowsTaskbar';
+import { SparkleOsTopbar } from './components/SparkleOsTopbar';
 import { WindowsContextMenu } from './components/WindowsContextMenu';
 import { DirectCommandFlyout } from './components/DirectCommandFlyout';
-import { SparkleOsTopbar } from './components/SparkleOsTopbar';
 import { DesktopSearchBox } from './components/DesktopSearchBox';
 import { Plus, RefreshCw, Monitor, Sun, Moon, Sparkles, Palette, LogOut, Search } from 'lucide-react';
 
@@ -94,6 +95,7 @@ export function getRouteTitle(route: string, channel?: Channel): string {
   if (route.startsWith('/pc-settings')) return 'PC Settings';
   if (route.startsWith('/defender')) return 'Windows Security';
   if (route.startsWith('/file-explorer')) return 'File Explorer';
+  if (route.startsWith('/task-manager')) return 'Task Manager';
   if (route.startsWith('/feedback')) return 'Feedback';
   if (route.startsWith('/channels')) return 'Channels';
   if (route.startsWith('/favorites')) return 'Favorites';
@@ -173,12 +175,25 @@ export default function App() {
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const [isDirectCommandOpen, setIsDirectCommandOpen] = useState(false);
   const [desktopContextMenu, setDesktopContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [desktopShortcuts, setDesktopShortcuts] = useState<Array<{ route: string; title: string; x: number; y: number }>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('sparkle_desktop_shortcuts_v1') || '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
   const [windowStates, setWindowStates] = useState<Record<string, AppWindowState>>({});
   const hasMaximizedWindow = isWindowsMode && tabs.some((t) => {
     const ws = windowStates[t.id];
     return Boolean(ws && ws.isMaximized && !ws.isMinimized);
   });
-  const isTaskbarFloating = isWindowsMode && Boolean(settings.floatBar) && !hasMaximizedWindow;
+  const isTaskbarFloating =
+    isWindowsMode &&
+    Boolean(settings.floatBar) &&
+    !hasMaximizedWindow &&
+    settings.taskbarPosition !== 'left' &&
+    settings.taskbarPosition !== 'right';
 
   useEffect(() => {
     const handleOpenDirectCommand = () => {
@@ -1504,6 +1519,9 @@ export default function App() {
       case '/file-explorer':
         return <FileExplorer navigate={activeNav} />;
 
+      case '/task-manager':
+        return <TaskManager tabs={tabs} onEndTask={handleCloseTab} />;
+
       default:
         return <HomePreview channels={channels} onSelectChannel={setCurrentChannel} navigate={activeNav} />;
     }
@@ -1604,7 +1622,12 @@ export default function App() {
 
       {/* Main App Container */}
       <div
-        style={isWindowsMode ? { paddingBottom: `${taskbarHeight}px` } : undefined}
+        style={isWindowsMode ? {
+          paddingTop: `${(settings.taskbarPosition === 'top' ? taskbarHeight : 0) + (settings.topbarPosition === 'top' ? topbarHeight : 0)}px`,
+          paddingBottom: `${(settings.taskbarPosition === 'bottom' ? taskbarHeight : 0) + (settings.topbarPosition === 'bottom' ? topbarHeight : 0)}px`,
+          paddingLeft: `${(settings.taskbarPosition === 'left' ? taskbarHeight : 0) + (settings.topbarPosition === 'left' ? topbarHeight : 0)}px`,
+          paddingRight: `${(settings.taskbarPosition === 'right' ? taskbarHeight : 0) + (settings.topbarPosition === 'right' ? topbarHeight : 0)}px`,
+        } : undefined}
         className={`flex-1 flex flex-col min-w-0 ${
         !isWindowsMode && (currentRoute === '/file-explorer' || currentRoute.startsWith('/file-explorer/'))
           ? 'h-screen overflow-hidden'
@@ -1635,6 +1658,25 @@ export default function App() {
               setIsStartMenuOpen(false);
               setDesktopContextMenu(null);
             }}
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes('application/x-sparkle-desktop-shortcut')) e.preventDefault();
+            }}
+            onDrop={(e) => {
+              const payload = e.dataTransfer.getData('application/x-sparkle-desktop-shortcut');
+              if (!payload) return;
+              e.preventDefault();
+              try {
+                const shortcut = JSON.parse(payload);
+                if (!shortcut.route || !shortcut.title) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                setDesktopShortcuts((previous) => {
+                  if (previous.some((item) => item.route === shortcut.route)) return previous;
+                  const next = [...previous, { route: shortcut.route, title: shortcut.title, x: e.clientX - rect.left, y: e.clientY - rect.top }];
+                  localStorage.setItem('sparkle_desktop_shortcuts_v1', JSON.stringify(next));
+                  return next;
+                });
+              } catch {}
+            }}
             onContextMenu={(e) => {
               if ((e.target as HTMLElement).closest('[data-window-frame]')) return;
               e.preventDefault();
@@ -1642,11 +1684,24 @@ export default function App() {
               setIsStartMenuOpen(false);
               setDesktopContextMenu({ x: e.clientX, y: e.clientY });
             }}
-            style={{ height: `calc(100vh - ${taskbarHeight}px)` }}
+            style={{ height: `calc(100dvh - ${(settings.taskbarPosition === 'left' || settings.taskbarPosition === 'right' ? 0 : taskbarHeight) + (settings.topbarPosition === 'left' || settings.topbarPosition === 'right' ? 0 : topbarHeight)}px)` }}
             className="windows-desktop-workspace relative z-[1] flex-1 w-full overflow-hidden !bg-transparent"
           >
             {/* Desktop-only Insider Evaluation Watermark (always visible in SparkleOS Mode, behind all windows & UIs) */}
             {isSplashFinished && <EvaluationWatermark isTaskbarFloating={isTaskbarFloating} />}
+            {desktopShortcuts.map((shortcut) => (
+              <button
+                key={shortcut.route}
+                type="button"
+                onClick={() => openOrFocusAppWindow(shortcut.route)}
+                style={{ left: shortcut.x, top: shortcut.y }}
+                className="absolute z-[2] w-[88px] min-h-[88px] -translate-x-1/2 -translate-y-1/2 rounded-md p-2 flex flex-col items-center justify-center gap-1 text-white text-center text-xs hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                aria-label={`Open ${shortcut.title}`}
+              >
+                <Monitor className="w-8 h-8 drop-shadow-md" aria-hidden="true" />
+                <span className="line-clamp-2 drop-shadow-md">{shortcut.title}</span>
+              </button>
+            ))}
             {/* Desktop Search Box Widget (Picture 2) */}
             {isSplashFinished && settings.showDesktopSearch !== false && (
               <DesktopSearchBox
@@ -1770,21 +1825,19 @@ export default function App() {
       {/* Sparkle OS Topbar, Start Menu & Bottom Taskbar when Windows Mode is active */}
       {isWindowsMode && (
         <>
-          {isSplashFinished && (
-            <SparkleOsTopbar
-              tabs={tabs}
-              activeTabId={activeTabId}
-              windowStates={windowStates}
-              channels={channels}
-              onSelectChannel={setCurrentChannel}
-              onLaunchRoute={(r, st) => openOrFocusAppWindow(r, st)}
-              onFocusWindow={handleTaskbarWindowClick}
-              onToggleStartMenu={() => {
-                setIsDirectCommandOpen(false);
-                setIsStartMenuOpen((prev) => !prev);
-              }}
-            />
-          )}
+          <SparkleOsTopbar
+            tabs={tabs}
+            activeTabId={activeTabId}
+            windowStates={windowStates}
+            channels={channels}
+            onSelectChannel={setCurrentChannel}
+            onLaunchRoute={(route, state) => openOrFocusAppWindow(route, state)}
+            onFocusWindow={focusWindow}
+            onToggleStartMenu={() => {
+              setIsDirectCommandOpen(false);
+              setIsStartMenuOpen((previous) => !previous);
+            }}
+          />
           <WindowsStartMenu
             isOpen={isStartMenuOpen}
             onClose={() => setIsStartMenuOpen(false)}
@@ -1831,10 +1884,24 @@ export default function App() {
                 onClose={() => setDesktopContextMenu(null)}
                 items={[
                   {
-                    id: 'desk-new-window',
-                    label: 'New window',
-                    icon: <Plus className="w-4 h-4" />,
-                    onSelect: () => handleCreateTab('/'),
+                    id: 'desk-view',
+                    label: 'View',
+                    icon: <Monitor className="w-4 h-4" />,
+                    checked: settings.showDesktopSearch !== false,
+                    onSelect: () => updateSetting('showDesktopSearch', !(settings.showDesktopSearch !== false)),
+                  },
+                  {
+                    id: 'desk-show-search',
+                    label: 'Show search',
+                    icon: <Search className="w-4 h-4" />,
+                    checked: settings.showDesktopSearch !== false,
+                    onSelect: () => updateSetting('showDesktopSearch', true),
+                  },
+                  {
+                    id: 'desk-sort',
+                    label: 'Sort by',
+                    icon: <Monitor className="w-4 h-4" />,
+                    onSelect: () => openOrFocusAppWindow('/pc-settings/personalization'),
                   },
                   {
                     id: 'desk-refresh',
@@ -1842,46 +1909,31 @@ export default function App() {
                     icon: <RefreshCw className="w-4 h-4" />,
                     onSelect: () => window.location.reload(),
                   },
-                  {
-                    id: 'desk-show-desktop',
-                    label: 'Show desktop',
-                    icon: <Monitor className="w-4 h-4" />,
-                    onSelect: handleShowDesktop,
-                  },
-                  {
-                    id: 'desk-show-search',
-                    label: 'Show search',
-                    icon: <Search className="w-4 h-4" />,
-                    checked: settings.showDesktopSearch !== false,
-                    onSelect: () => updateSetting('showDesktopSearch', !(settings.showDesktopSearch !== false)),
-                  },
                   { id: 'desk-div-1', divider: true },
                   {
-                    id: 'desk-theme',
-                    label: settings.theme === 'light' ? 'Switch to Dark mode' : 'Switch to Light mode',
-                    icon: settings.theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />,
-                    onSelect: () => updateSetting('theme', settings.theme === 'light' ? 'dark' : 'light'),
+                    id: 'desk-new-window',
+                    label: 'New',
+                    icon: <Plus className="w-4 h-4" />,
+                    onSelect: () => handleCreateTab('/'),
                   },
                   {
-                    id: 'desk-acrylic',
-                    label: 'Acrylic glass',
+                    id: 'desk-direct-command',
+                    label: 'Direct Command',
                     icon: <Sparkles className="w-4 h-4" />,
-                    checked: Boolean(settings.spatialGlass),
-                    onSelect: () => updateSetting('spatialGlass', !settings.spatialGlass),
+                    onSelect: () => setIsDirectCommandOpen(true),
                   },
                   { id: 'desk-div-2', divider: true },
                   {
-                    id: 'desk-personalize',
-                    label: 'Personalize',
+                    id: 'desk-background',
+                    label: 'Change background',
                     icon: <Palette className="w-4 h-4" />,
                     onSelect: () => openOrFocusAppWindow('/pc-settings/personalization'),
                   },
                   {
-                    id: 'desk-exit-win',
-                    label: 'Exit SparkleOS Mode',
-                    icon: <LogOut className="w-4 h-4" />,
-                    danger: true,
-                    onSelect: () => updateSetting('windowsMode', false),
+                    id: 'desk-personalize',
+                    label: 'Personalization',
+                    icon: <Palette className="w-4 h-4" />,
+                    onSelect: () => openOrFocusAppWindow('/pc-settings/personalization'),
                   },
                 ]}
               />

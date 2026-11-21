@@ -48,7 +48,7 @@ const COMMAND_SUGGESTIONS: CommandSuggestion[] = [
 const WELCOME_ENTRY: ConsoleEntry = {
   id: 'welcome',
   lines: [
-    { text: 'Sparkle Direct Command [Version vNext.Moment 1]', tone: 'accent' },
+    { text: 'Sparkle Direct Command [Version 27000.01 (vNext)]', tone: 'accent' },
     { text: 'Type /help for a list of commands. Press Tab to autocomplete.', tone: 'muted' },
   ],
 };
@@ -57,7 +57,9 @@ export const DirectCommandFlyout: React.FC<DirectCommandFlyoutProps> = ({ isOpen
   const { settings, updateSetting } = useSettings();
   const isLightMode = settings.theme === 'light';
   const taskbarHeight = getTaskbarHeightPx(settings.taskbarScale, isTaskbarFloating);
-  const bottomOffset = settings.windowsMode
+  const isVerticalTaskbar = settings.taskbarPosition === 'left' || settings.taskbarPosition === 'right';
+  const isTopTaskbar = settings.taskbarPosition === 'top';
+  const bottomOffset = settings.windowsMode && !isVerticalTaskbar && !isTopTaskbar
     ? taskbarHeight + (isTaskbarFloating ? FLOAT_BAR_BOTTOM_GAP_PX : 0) + 8
     : 12;
 
@@ -421,8 +423,18 @@ export const DirectCommandFlyout: React.FC<DirectCommandFlyoutProps> = ({ isOpen
                   transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
                 }
           }
-          style={{ zIndex: 9100, paddingBottom: `${bottomOffset}px` }}
-          className="fixed bottom-0 inset-x-0 flex justify-center sm:justify-end px-3 pointer-events-none"
+          style={{
+            zIndex: 9100,
+            paddingBottom: isVerticalTaskbar || isTopTaskbar ? '12px' : `${bottomOffset}px`,
+            ...(settings.windowsMode && isVerticalTaskbar
+              ? settings.taskbarPosition === 'left'
+                ? { left: `${taskbarHeight + 8}px`, right: 'auto', top: '12px', bottom: '12px' }
+                : { right: `${taskbarHeight + 8}px`, left: 'auto', top: '12px', bottom: '12px' }
+              : settings.windowsMode && isTopTaskbar
+                ? { top: `${taskbarHeight + 8}px`, bottom: 'auto' }
+                : {}),
+          }}
+          className={`fixed inset-x-0 flex ${isVerticalTaskbar ? 'items-center justify-center' : 'justify-center sm:justify-end'} px-3 pointer-events-none`}
         >
           <div
             ref={flyoutRef}

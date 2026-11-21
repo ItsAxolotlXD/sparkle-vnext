@@ -2152,7 +2152,7 @@ export const WindowsWidgetsBoard: React.FC<WindowsWidgetsBoardProps> = ({
                             <div>
                               <div className="text-[13.5px] font-medium">Widgets</div>
                               <div className="text-[11.5px] tabular-nums" style={mutedTextStyle}>
-                                Version: 526.31400.0.0 · Build vNext.Moment 1
+                                Version: 526.31400.0.0 · Build 27000.01 (vNext)
                               </div>
                             </div>
                           </div>
