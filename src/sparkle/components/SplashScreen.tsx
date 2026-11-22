@@ -95,7 +95,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         >
           <div style={{ color: '#ffffff' }}>Do not take screenshots of this build</div>
           <div style={{ color: '#ffffff' }}>Sparkle 27M1 Insider Preview</div>
-          <div style={{ color: '#ffffff' }}>Evaluation copy. Build 27000.01 (vNext)</div>
+          <div style={{ color: '#ffffff' }}>Evaluation copy. Build 27000.26 (vNext)</div>
         </div>
       )}
     </div>

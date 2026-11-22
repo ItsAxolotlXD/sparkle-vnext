@@ -48,7 +48,7 @@ const COMMAND_SUGGESTIONS: CommandSuggestion[] = [
 const WELCOME_ENTRY: ConsoleEntry = {
   id: 'welcome',
   lines: [
-    { text: 'Sparkle Direct Command [Version 27000.01 (vNext)]', tone: 'accent' },
+    { text: 'Sparkle Direct Command [Version 27000.26 (vNext)]', tone: 'accent' },
     { text: 'Type /help for a list of commands. Press Tab to autocomplete.', tone: 'muted' },
   ],
 };

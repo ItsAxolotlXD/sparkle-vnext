@@ -45,7 +45,7 @@ export const EvaluationWatermark: React.FC<EvaluationWatermarkProps> = ({ classN
     >
       <div style={{ color: '#ffffff', textShadow: 'none' }}>Do not take screenshots of this build</div>
       <div style={{ color: '#ffffff', textShadow: 'none' }}>Sparkle 27M1 Insider Preview</div>
-      <div style={{ color: '#ffffff', textShadow: 'none' }}>Evaluation copy. Build 27000.01 (vNext)</div>
+      <div style={{ color: '#ffffff', textShadow: 'none' }}>Evaluation copy. Build 27000.26 (vNext)</div>
     </div>
   );
 };
