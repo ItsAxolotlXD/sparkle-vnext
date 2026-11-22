@@ -109,6 +109,52 @@ export function getRouteTitle(route: string, channel?: Channel): string {
 
 export default function App() {
   const { settings, draftSettings, hasChanges, applyDraftSettings, discardDraftSettings, updateSetting } = useSettings();
+  const [spotlightWallpaperUrl, setSpotlightWallpaperUrl] = useState(() => {
+    try {
+      return localStorage.getItem('sparkle_spotlight_wallpaper_url') || getWallpaperById('spotlight-collection').image;
+    } catch {
+      return getWallpaperById('spotlight-collection').image;
+    }
+  });
+
+  useEffect(() => {
+    if (settings.windowsWallpaper !== 'spotlight-collection') return;
+    let active = true;
+    let images: string[] = [];
+    let index = 0;
+    const applyImage = (url: string) => {
+      setSpotlightWallpaperUrl(url);
+      try {
+        localStorage.setItem('sparkle_spotlight_wallpaper_url', url);
+      } catch {
+        return;
+      }
+    };
+    const loadImages = async () => {
+      try {
+        const response = await fetch('/api/spotlight');
+        if (!response.ok) throw new Error('Spotlight image feed unavailable');
+        const feed = await response.json();
+        images = Array.isArray(feed.images) ? feed.images : [];
+      } catch {
+        images = [getWallpaperById('spotlight-collection').image];
+      }
+      if (active && images.length) {
+        index = 0;
+        applyImage(images[index]);
+      }
+    };
+    void loadImages();
+    const timer = window.setInterval(() => {
+      if (!images.length) return;
+      index = (index + 1) % images.length;
+      applyImage(images[index]);
+    }, 60_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [settings.windowsWallpaper]);
 
   // Tooltip & navigation block for unsaved settings
   const [showUnsavedTooltip, setShowUnsavedTooltip] = useState(false);
@@ -1569,7 +1615,7 @@ export default function App() {
         style={
           isWindowsMode
             ? {
-                backgroundImage: `url('${getWallpaperById(settings.windowsWallpaper).image}')`,
+                backgroundImage: `url('${settings.windowsWallpaper === 'spotlight-collection' ? spotlightWallpaperUrl : getWallpaperById(settings.windowsWallpaper).image}')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -1670,8 +1716,12 @@ export default function App() {
                 if (!shortcut.route || !shortcut.title) return;
                 const rect = e.currentTarget.getBoundingClientRect();
                 setDesktopShortcuts((previous) => {
-                  if (previous.some((item) => item.route === shortcut.route)) return previous;
-                  const next = [...previous, { route: shortcut.route, title: shortcut.title, x: e.clientX - rect.left, y: e.clientY - rect.top }];
+                  const x = Math.max(48, Math.min(rect.width - 48, e.clientX - rect.left));
+                  const y = Math.max(48, Math.min(rect.height - 48, e.clientY - rect.top));
+                  const existing = previous.findIndex((item) => item.route === shortcut.route);
+                  const next = existing >= 0
+                    ? previous.map((item, index) => index === existing && shortcut.moving ? { ...item, x, y } : item)
+                    : [...previous, { route: shortcut.route, title: shortcut.title, x, y }];
                   localStorage.setItem('sparkle_desktop_shortcuts_v1', JSON.stringify(next));
                   return next;
                 });
@@ -1694,11 +1744,16 @@ export default function App() {
                 key={shortcut.route}
                 type="button"
                 onClick={() => openOrFocusAppWindow(shortcut.route)}
-                style={{ left: shortcut.x, top: shortcut.y }}
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.setData('application/x-sparkle-desktop-shortcut', JSON.stringify({ ...shortcut, moving: true }));
+                  event.dataTransfer.effectAllowed = 'move';
+                }}
+                style={{ left: shortcut.x, top: shortcut.y, cursor: 'grab' }}
                 className="absolute z-[2] w-[88px] min-h-[88px] -translate-x-1/2 -translate-y-1/2 rounded-md p-2 flex flex-col items-center justify-center gap-1 text-white text-center text-xs hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                 aria-label={`Open ${shortcut.title}`}
               >
-                <Monitor className="w-8 h-8 drop-shadow-md" aria-hidden="true" />
+                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-QSkgR8s0FUbxPi6kMWabnXqCu6Kpd9.png" alt="" draggable={false} className="w-10 h-10 object-contain drop-shadow-md pointer-events-none" />
                 <span className="line-clamp-2 drop-shadow-md">{shortcut.title}</span>
               </button>
             ))}
@@ -1836,6 +1891,10 @@ export default function App() {
             onToggleStartMenu={() => {
               setIsDirectCommandOpen(false);
               setIsStartMenuOpen((previous) => !previous);
+            }}
+            onOpenContextMenu={(x, y) => {
+              setIsStartMenuOpen(false);
+              setDesktopContextMenu({ x, y });
             }}
           />
           <WindowsStartMenu

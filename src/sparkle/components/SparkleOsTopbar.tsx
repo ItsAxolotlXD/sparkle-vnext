@@ -26,6 +26,7 @@ interface SparkleOsTopbarProps {
   onLaunchRoute: (route: string, state?: unknown) => void;
   onFocusWindow: (tabId: string) => void;
   onToggleStartMenu: () => void;
+  onOpenContextMenu: (x: number, y: number) => void;
 }
 
 function formatTopbarDateTime(now: Date): string {
@@ -46,6 +47,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
   onLaunchRoute,
   onFocusWindow,
   onToggleStartMenu,
+  onOpenContextMenu,
 }) => {
   const { settings } = useSettings();
   const { notes, setActiveNoteId } = useNotes();
@@ -182,6 +184,10 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
       id="sparkle-os-topbar"
       role="banner"
       aria-label="Sparkle OS Top Bar"
+      onContextMenu={(event) => {
+        event.preventDefault();
+        onOpenContextMenu(event.clientX, event.clientY);
+      }}
       style={{
         height: `${topbarHeight}px`,
         width: isVerticalTopbar ? "100dvh" : undefined,
@@ -353,7 +359,7 @@ export const SparkleOsTopbar: React.FC<SparkleOsTopbarProps> = ({
                 backdropFilter: "blur(32px) saturate(165%)",
                 WebkitBackdropFilter: "blur(32px) saturate(165%)",
               }}
-              className="absolute top-[36px] left-1/2 -translate-x-1/2 w-[min(390px,92vw)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-xl p-1.5 space-y-0.5 z-[9100]"
+              className="absolute top-[48px] left-1/2 -translate-x-1/2 w-[min(390px,92vw)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-xl p-1.5 space-y-0.5 z-[9100]"
             >
               {results.map((item) =>
                 item.externalUrl ? (

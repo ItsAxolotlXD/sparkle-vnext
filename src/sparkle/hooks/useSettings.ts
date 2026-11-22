@@ -148,7 +148,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 };
 
 export const FLOAT_BAR_BOTTOM_GAP_PX = 10;
-export const WINDOWS_TOPBAR_HEIGHT_PX = 32;
+export const WINDOWS_TOPBAR_HEIGHT_PX = 44;
 
 export const getTaskbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloating = false): number => {
   if (isFloating) {
