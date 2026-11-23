@@ -1499,7 +1499,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
 
           {/* Search Box or Search Icon Button based on taskbarSearchStyle */}
           <div ref={searchBoxRef} className="relative shrink-0">
-            {isVerticalTaskbar || isSearchButtonMode ? (
+            {isVerticalTaskbar || isSearchButtonMode || settings.searchLayoutConcept ? (
               <button
                 id="windows-taskbar-search-btn"
                 type="button"
@@ -1642,6 +1642,95 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                         isLeftAligned ? 'justify-center md:justify-start' : 'justify-center'
                       }`}
                     >
+                      {settings.searchLayoutConcept ? (
+                        <section
+                          ref={searchFlyoutRef}
+                          id="windows-taskbar-search-flyout"
+                          aria-label="Search"
+                          style={{
+                            backgroundColor: 'rgba(23, 37, 54, 0.94)',
+                            backdropFilter: 'blur(36px) saturate(170%)',
+                            WebkitBackdropFilter: 'blur(36px) saturate(170%)',
+                          }}
+                          className="pointer-events-auto w-full max-w-[780px] h-[min(560px,calc(100vh-100px))] rounded-[10px] border border-white/15 shadow-[0_28px_80px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col p-4 sm:p-6 text-white"
+                        >
+                          <form
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              if (searchQuery.trim() && searchResults.length > 0) handleSelectSearchResult(searchResults[0]);
+                            }}
+                            className="h-10 shrink-0 flex items-center gap-3 rounded-t-md border border-white/15 border-b-[#4cc2ff] border-b-2 bg-black/25 px-3"
+                          >
+                            <Search className="size-4 shrink-0 text-white/80" aria-hidden="true" />
+                            <input
+                              ref={searchFlyoutInputRef}
+                              type="search"
+                              value={searchQuery}
+                              onChange={(event) => {
+                                setSearchQuery(event.target.value);
+                                setShowAllResults(false);
+                              }}
+                              placeholder="Search for apps, settings, and documents"
+                              aria-label="Search for apps, settings, and documents"
+                              className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/55 outline-none"
+                            />
+                            {searchQuery && (
+                              <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear search" className="rounded-full p-1 text-white/70 hover:bg-white/10 hover:text-white">
+                                <X className="size-4" />
+                              </button>
+                            )}
+                          </form>
+                          <nav aria-label="Search result categories" className="mt-3 flex shrink-0 items-center gap-5 border-b border-white/10 px-2 text-[13px] text-white/70">
+                            {['All', 'Apps', 'Documents', 'Web'].map((tab) => (
+                              <span key={tab} className={`relative py-2 ${tab === 'All' ? 'font-medium text-white after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-[#4cc2ff]' : ''}`}>{tab}</span>
+                            ))}
+                            <span className="ml-auto text-[11px] text-white/55">Search results</span>
+                          </nav>
+                          <div className="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden sm:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
+                            <div className="min-h-0 overflow-y-auto pr-1">
+                              <h2 className="mb-2 px-2 text-xs font-semibold text-white/75">{searchQuery.trim() ? 'Best match' : 'Suggested'}</h2>
+                              <div className="flex flex-col gap-1">
+                                {(showAllResults ? searchResults : searchResults.slice(0, 8)).map((item, index) => (
+                                  <button
+                                    key={`${item.id}-${searchQuery}-${index}`}
+                                    type="button"
+                                    onClick={() => handleSelectSearchResult(item)}
+                                    className="group flex min-h-12 w-full items-center gap-3 rounded-md border-l-[3px] border-transparent px-3 py-2 text-left hover:border-[#4cc2ff] hover:bg-white/[0.08]"
+                                  >
+                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-white/[0.08] text-white/80">
+                                      {item.logo ? <img src={item.logo} alt="" className="size-5 object-contain" /> : <Search className="size-4" aria-hidden="true" />}
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                      <span className="block truncate text-[13px] font-medium">{item.title}</span>
+                                      <span className="mt-0.5 block truncate text-[11px] text-white/60">{item.subtitle || (item.type === 'history' ? 'Search history' : 'Open result')}</span>
+                                    </span>
+                                    <ChevronRight className="size-4 shrink-0 text-white/45" aria-hidden="true" />
+                                  </button>
+                                ))}
+                                {searchResults.length === 0 && (
+                                  <p className="px-3 py-5 text-sm text-white/60">{searchQuery.trim() ? 'No results found.' : 'Type to search apps, settings, and more.'}</p>
+                                )}
+                              </div>
+                            </div>
+                            <aside className="hidden min-h-0 overflow-y-auto rounded-lg border border-white/[0.06] bg-white/[0.05] p-5 sm:block" aria-label="Search preview">
+                              {searchQuery.trim() && searchResults[0] ? (
+                                <div className="flex h-full flex-col items-center justify-center text-center">
+                                  {searchResults[0].logo ? <img src={searchResults[0].logo} alt="" className="mb-4 size-12 object-contain" /> : <Search className="mb-4 size-9 text-[#4cc2ff]" aria-hidden="true" />}
+                                  <h2 className="text-base font-semibold">{searchResults[0].title}</h2>
+                                  <p className="mt-1 text-xs text-white/60">{searchResults[0].subtitle || 'Search result'}</p>
+                                  <button type="button" onClick={() => handleSelectSearchResult(searchResults[0])} className="mt-6 rounded-md bg-[#4cc2ff] px-4 py-2 text-xs font-semibold text-[#122333] hover:bg-sky-300">Open</button>
+                                </div>
+                              ) : (
+                                <div className="flex h-full flex-col justify-center gap-4 text-sm text-white/75">
+                                  <h2 className="text-sm font-semibold text-white">Search your apps and settings</h2>
+                                  <p className="text-xs leading-5 text-white/60">Find channels, articles, settings, notes, and recent searches from one place.</p>
+                                  <div className="border-t border-white/10 pt-4 text-xs text-white/55">Start typing to see matching results and details here.</div>
+                                </div>
+                              )}
+                            </aside>
+                          </div>
+                        </section>
+                      ) : (
                       <div
                         ref={searchFlyoutRef}
                         id="windows-taskbar-search-flyout"
@@ -1852,6 +1941,7 @@ export const WindowsTaskbar: React.FC<WindowsTaskbarProps> = ({
                           )}
                         </form>
                       </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>,
