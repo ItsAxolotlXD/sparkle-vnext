@@ -13,6 +13,14 @@ export const DEFAULT_WALLPAPER_ID = 'vnext-flow-light';
 
 export const WINDOWS_WALLPAPERS: WallpaperOption[] = [
   {
+    id: 'spotlight-collection',
+    label: 'Spotlight Collection',
+    mode: 'dark',
+    image: 'https://windows10spotlight.com/wp-content/uploads/2022/03/spotlight.webp',
+    accent: '#4cc2ff',
+    taskbarBg: 'bg-[#1c2026]/90',
+  },
+  {
     id: 'vnext-flow-light',
     label: 'Sparkle vNext Light',
     mode: 'light',

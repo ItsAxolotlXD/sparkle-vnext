@@ -175,7 +175,7 @@ export function TaskManager({ tabs, onEndTask }: TaskManagerProps) {
           </table>
         </div>
         <footer className="mt-3 text-xs opacity-60">
-          {processes.length} processes · SparkleOS 27000.01
+          {processes.length} processes · SparkleOS 27000.26
         </footer>
       </section>
     </main>

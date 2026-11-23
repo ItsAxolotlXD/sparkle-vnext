@@ -49,6 +49,8 @@ export interface SystemSettings {
   triangleExperimentVersion?: number;
   tabbedSparkle: boolean;
   windowsMode: boolean;
+  startLayoutConcept: boolean;
+  searchLayoutConcept: boolean;
   floatBar: boolean;
   floatBarVersion?: number;
   showDesktopSearch: boolean;
@@ -122,6 +124,8 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   triangleExperimentVersion: 1,
   tabbedSparkle: false,
   windowsMode: false,
+  startLayoutConcept: false,
+  searchLayoutConcept: false,
   floatBar: true,
   floatBarVersion: 1,
   showDesktopSearch: true,
@@ -148,7 +152,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 };
 
 export const FLOAT_BAR_BOTTOM_GAP_PX = 10;
-export const WINDOWS_TOPBAR_HEIGHT_PX = 32;
+export const WINDOWS_TOPBAR_HEIGHT_PX = 44;
 
 export const getTaskbarHeightPx = (scale?: 'small' | 'default' | 'large', isFloating = false): number => {
   if (isFloating) {

@@ -130,7 +130,7 @@ export const AnimatedBootScreen: React.FC<AnimatedBootScreenProps> = ({
       >
         <div>Do not take screenshots of this build</div>
         <div>Sparkle 27M1 Insider Preview</div>
-        <div>Evaluation copy. Build 27000.01 (vNext)</div>
+        <div>Evaluation copy. Build 27000.26 (vNext)</div>
       </div>
     </div>
   );
