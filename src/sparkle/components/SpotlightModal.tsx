@@ -61,6 +61,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [viewMode, setViewMode] = useState<'search' | 'settings'>('search');
+  const [activeTab, setActiveTab] = useState<'all' | 'channels' | 'news'>('all');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -78,6 +79,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
       setQuery('');
       setIsFocused(false);
       setViewMode('search');
+      setActiveTab('all');
       const timer = setTimeout(() => {
         setIsFocused(true);
         inputRef.current?.focus();
@@ -199,7 +201,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
             initial="initial"
             animate="animate"
             exit="exit"
-            className="fluent-modal-dialog relative w-full max-w-[440px] sm:max-w-[480px] bg-white dark:bg-[#202020] border border-black/[0.08] dark:border-white/[0.08] rounded-[10px] p-4 sm:p-5 shadow-[0_24px_48px_rgba(0,0,0,0.22),0_2px_6px_rgba(0,0,0,0.08)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.7),0_2px_6px_rgba(255,255,255,0.04)] overflow-hidden z-10 my-auto max-h-[calc(100vh-32px)] flex flex-col text-[#111827] dark:text-[#FFFFFF]"
+            className={`fluent-modal-dialog relative w-full ${settings.searchLayoutConcept ? 'max-w-[860px] sm:max-w-[920px] min-h-[min(580px,calc(100vh-32px))] bg-[#172536]/90 dark:bg-[#172536]/90 border border-white/15 rounded-[10px] p-4 sm:p-6 backdrop-blur-2xl shadow-[0_28px_90px_rgba(0,0,0,0.48)] text-white' : 'max-w-[440px] sm:max-w-[480px] bg-white dark:bg-[#202020] border border-black/[0.08] dark:border-white/[0.08] rounded-[10px] p-4 sm:p-5 shadow-[0_24px_48px_rgba(0,0,0,0.22),0_2px_6px_rgba(0,0,0,0.08)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.7),0_2px_6px_rgba(255,255,255,0.04)] text-[#111827] dark:text-[#FFFFFF]'} overflow-hidden z-10 my-auto max-h-[calc(100vh-32px)] flex flex-col`}
           >
             {viewMode === 'settings' ? (
               /* View 2: Search Settings Menu (Without navigating to Settings tab) */
@@ -414,7 +416,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
                     setIsFocused(true);
                     inputRef.current?.focus();
                   }}
-                  className="group relative w-full h-[35px] sm:h-[37px] bg-black/5 dark:bg-[#282c31] border border-black/10 dark:border-white/10 focus-within:border-[#005fb8] dark:focus-within:border-[#4cc2ff] flex items-center px-3.5 gap-2 rounded-[6px] transition-all cursor-text select-none"
+                  className={`group relative w-full h-[35px] sm:h-[37px] ${settings.searchLayoutConcept ? 'bg-slate-950/45 border-white/15' : 'bg-black/5 dark:bg-[#282c31] border-black/10 dark:border-white/10'} border focus-within:border-[#005fb8] dark:focus-within:border-[#4cc2ff] flex items-center px-3.5 gap-2 rounded-[6px] transition-all cursor-text select-none`}
                 >
                   <FluentSearchIcon className="w-[18px] h-[18px] text-[#71717a] dark:text-white shrink-0 pointer-events-none select-none" />
                   <div className={`flex items-center gap-2.5 w-full ${isFocused || isListening || query ? 'pr-24' : 'pr-14'}`}>
@@ -509,13 +511,76 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
 
                 {/* Dynamic Content Area */}
                 {!query ? (
-                  <div className="py-7 sm:py-9 px-3 text-center">
-                    <p className="text-[13px] sm:text-sm text-[#666666] dark:text-[#AAAAAA] leading-relaxed font-normal select-none max-w-[290px] mx-auto">
-                      Type keywords or channel numbers to search Sparkle
-                    </p>
-                  </div>
+                  settings.searchLayoutConcept ? (
+                    <div className="mt-5 grid min-h-0 flex-1 grid-cols-1 gap-5 overflow-y-auto sm:grid-cols-[220px_minmax(0,1fr)] sm:overflow-hidden">
+                      <aside className="border-white/10 sm:border-r sm:pr-4" aria-label="Suggested destinations">
+                        <h2 className="mb-3 text-xs font-semibold text-white/75">Suggested</h2>
+                        <div className="flex flex-col gap-1">
+                          {CATEGORY_ITEMS.map((item) => {
+                            const IconComponent = item.icon;
+                            return (
+                              <button key={item.id} type="button" onClick={() => { navigate(item.route); onClose(); }} className="flex items-center gap-3 rounded-md px-2.5 py-2.5 text-left text-[13px] text-white/90 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+                                <span className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-sky-300"><IconComponent className="size-4" /></span>
+                                <span>{item.title}</span>
+                              </button>
+                            );
+                          })}
+                          {SETTINGS_SHORTCUTS.slice(0, 4).map((item) => (
+                            <button key={item.id} type="button" onClick={() => { navigate('/settings'); onClose(); }} className="flex items-center gap-3 rounded-md px-2.5 py-2.5 text-left text-[13px] text-white/90 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+                              <span className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-sky-300"><SettingsIcon className="size-4" /></span>
+                              <span className="truncate">{item.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </aside>
+                      <section className="min-w-0 overflow-y-auto pr-1" aria-label="Search suggestions">
+                        <div className="mb-3 flex items-center justify-between text-xs font-semibold text-white/80">
+                          <span>Today</span><span className="text-white/45">Discover on Sparkle</span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {NEWS_DATA.slice(0, 1).map((item) => (
+                            <button key={item.id} type="button" onClick={() => { navigate(`/news/${item.slug}`); onClose(); }} className="group relative min-h-[190px] overflow-hidden rounded-lg border border-white/10 bg-white/10 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:col-span-2">
+                              <img src={item.coverImage} alt="" className="absolute inset-0 size-full object-cover opacity-75 transition-transform duration-300 group-hover:scale-[1.03]" />
+                              <span className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/10 to-transparent" />
+                              <span className="absolute bottom-4 left-4 right-4 text-lg font-semibold text-white">{item.title}</span>
+                            </button>
+                          ))}
+                          {NEWS_DATA.slice(1, 3).map((item) => (
+                            <button key={item.id} type="button" onClick={() => { navigate(`/news/${item.slug}`); onClose(); }} className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.07] text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+                              <img src={item.coverImage} alt="" className="h-24 w-full object-cover" />
+                              <span className="block p-3 text-xs font-medium text-white/90 line-clamp-2">{item.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="mt-4 rounded-lg border border-white/[0.08] bg-white/[0.06] p-3.5">
+                          <div className="mb-2 text-xs font-semibold text-white/90">Popular searches</div>
+                          <div className="flex flex-wrap gap-2">
+                            {['Live TV', 'News', 'Sports', 'Weather'].map((term) => (
+                              <button key={term} type="button" onClick={() => setQuery(term)} className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-xs text-white/85 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">{term}</button>
+                            ))}
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                  ) : (
+                    <div className="py-7 sm:py-9 px-3 text-center">
+                      <p className="text-[13px] sm:text-sm text-[#666666] dark:text-[#AAAAAA] leading-relaxed font-normal select-none max-w-[290px] mx-auto">
+                        Type keywords or channel numbers to search Sparkle
+                      </p>
+                    </div>
+                  )
                 ) : (
-                  <motion.div
+                  <>
+                    {settings.searchLayoutConcept && (
+                      <nav aria-label="Search result categories" className="mt-4 flex items-center gap-1 border-b border-white/10 px-1 text-[13px] text-white/75">
+                        <button type="button" onClick={() => setActiveTab('all')} className={`border-b-2 px-3 py-2.5 ${activeTab === 'all' ? 'border-sky-400 text-white' : 'border-transparent hover:text-white'}`}>All</button>
+                        <button type="button" onClick={() => setActiveTab('channels')} className={`border-b-2 px-3 py-2.5 ${activeTab === 'channels' ? 'border-sky-400 text-white' : 'border-transparent hover:text-white'}`}>Apps</button>
+                        <button type="button" onClick={() => setActiveTab('news')} className={`border-b-2 px-3 py-2.5 ${activeTab === 'news' ? 'border-sky-400 text-white' : 'border-transparent hover:text-white'}`}>Documents</button>
+                        <button type="button" onClick={() => window.open(`https://www.bing.com/search?q=${encodeURIComponent(rawQuery)}`, '_blank', 'noopener,noreferrer')} className="border-b-2 border-transparent px-3 py-2.5 hover:text-white">Web</button>
+                        <button type="button" onClick={() => setViewMode('settings')} className="ml-auto border-b-2 border-transparent px-3 py-2.5 hover:text-white">More</button>
+                      </nav>
+                    )}
+                    <motion.div
                     key="spotlight-results-container"
                     initial={{ opacity: 0, y: 26 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -523,7 +588,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
                     className="spotlight-search-results-container mt-3 max-h-[320px] overflow-y-auto space-y-2.5 pr-1 sidebar-scroller"
                   >
                     {/* 1. Channels */}
-                    {matchedChannels.length > 0 && (
+                    {(activeTab === 'all' || activeTab === 'channels') && matchedChannels.length > 0 && (
                       <div className="space-y-1">
                         <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#4cc2ff] flex items-center gap-1.5">
                           <CategoryIcon className="w-4 h-4 shrink-0" />
@@ -568,7 +633,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
                     )}
 
                     {/* 2. Categories / Navigation */}
-                    {matchedCategories.length > 0 && (
+                    {(activeTab === 'all' || activeTab === 'channels') && matchedCategories.length > 0 && (
                       <div className="space-y-1">
                         <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#4cc2ff] flex items-center gap-1.5">
                           <CategoryIcon className="w-4 h-4 shrink-0" />
@@ -596,7 +661,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
                     )}
 
                     {/* 3. News */}
-                    {matchedNews.length > 0 && (
+                    {(activeTab === 'all' || activeTab === 'news') && matchedNews.length > 0 && (
                       <div className="space-y-1">
                         <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#4cc2ff] flex items-center gap-1.5">
                           <CategoryIcon className="w-4 h-4 shrink-0" />
@@ -650,7 +715,8 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
                         No results found for "<span className="text-[#111827] dark:text-white font-medium">{query}</span>"
                       </div>
                     )}
-                  </motion.div>
+                    </motion.div>
+                  </>
                 )}
               </>
             )}

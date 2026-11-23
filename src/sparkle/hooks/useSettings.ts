@@ -50,6 +50,7 @@ export interface SystemSettings {
   tabbedSparkle: boolean;
   windowsMode: boolean;
   startLayoutConcept: boolean;
+  searchLayoutConcept: boolean;
   floatBar: boolean;
   floatBarVersion?: number;
   showDesktopSearch: boolean;
@@ -124,6 +125,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   tabbedSparkle: false,
   windowsMode: false,
   startLayoutConcept: false,
+  searchLayoutConcept: false,
   floatBar: true,
   floatBarVersion: 1,
   showDesktopSearch: true,

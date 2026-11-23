@@ -53,6 +53,11 @@ const VIVE_FEATURE_DEFS: ViveFeatureDefinition[] = [
     description: 'Reimagines the Start menu with pinned apps, a weather and clock panel, and suggested apps.',
   },
   {
+    key: 'searchLayoutConcept',
+    name: 'SearchLayoutConcept',
+    description: 'Reimagines search as a Windows-style glass panel with suggested content and a two-column results view.',
+  },
+  {
     key: 'floatBar',
     name: 'FloatBar',
     description: 'Floats the SparkleOS Mode taskbar with rounded corners and snaps it back to screen corners when a window is maximized.',
@@ -70,6 +75,7 @@ const FALLBACK_RANDOM_IDS: Record<string, string> = {
   dynamicSidebarIcons: '92047183',
   animatedBootScreen: '36481927',
   startLayoutConcept: '84627139',
+  searchLayoutConcept: '48371629',
   floatBar: '61938472',
 };
 

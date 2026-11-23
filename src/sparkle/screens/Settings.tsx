@@ -214,7 +214,7 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   const matchesExperimental =
-    matchesSearch(['Vive Features', 'Vive', 'Velocity Features', 'Velocity', 'vivetool', 'tabbed sparkle', 'tabbed', 'windows mode', 'windows 11', 'floatbar', 'float bar', 'floating taskbar', 'taskbar', 'start menu', 'windowed', 'desktop', 'Insider experiments', 'Insider Flags', 'thử nghiệm', 'touch keyboard', 'native keyboard', 'bàn phím cảm ứng', 'bàn phím ảo', 'refreshed search icon', 'search icon', 'immersive search', 'fluent icons', 'flumojs', 'fluent emojis', 'emoji', '3d icons', 'animated boot screen', 'boot screen', 'khởi động', 'video khởi động']);
+    matchesSearch(['Vive Features', 'Vive', 'Velocity Features', 'Velocity', 'vivetool', 'tabbed sparkle', 'tabbed', 'windows mode', 'windows 11', 'floatbar', 'float bar', 'floating taskbar', 'taskbar', 'start menu', 'windowed', 'desktop', 'Insider experiments', 'Insider Flags', 'thử nghiệm', 'touch keyboard', 'native keyboard', 'bàn phím cảm ứng', 'bàn phím ảo', 'refreshed search icon', 'search icon', 'immersive search', 'searchlayoutconcept', 'search layout concept', 'fluent icons', 'flumojs', 'fluent emojis', 'emoji', '3d icons', 'animated boot screen', 'boot screen', 'khởi động', 'video khởi động']);
   const matchesInterface = 
     matchesSearch(['Appearance', 'Interface', 'giao diện', 'chế độ ứng dụng', 'ban ngày', 'ban đêm', 'light', 'dark', 'thanh điều hướng', 'navigation', 'side view', 'top view', 'tab view', 'thu phóng giao diện', 'font', 'vị trí thanh bên', 'siêu chế độ tối', 'super dark', 'Open Settings in new tab', 'open settings', 'tab mới', 'new tab']);
   const matchesAccessibility = matchesSearch(['Accessibility', 'trợ năng', 'hover to expand']);
@@ -484,6 +484,54 @@ export const Settings: React.FC<SettingsProps> = ({
                       onClick={(event) => {
                         event.stopPropagation();
                         triggerVelocityFeatureToggle('startLayoutConcept', !draftSettings.startLayoutConcept);
+                      }}
+                      className="toggle-switch-btn focus:outline-none shrink-0 border-none"
+                    >
+                      <span className="toggle-switch-thumb" />
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* Search layout concept (Vive Feature) */}
+                {matchesSearch(['SearchLayoutConcept', 'Search Layout Concept', 'Search layout', 'Windows search layout', 'Vive Features', 'Vive', 'Velocity Features', 'Velocity', 'vivetool', getViveFeatureId('searchLayoutConcept')]) && (
+                  <motion.div
+                    variants={slideUpVariant}
+                    initial="hidden"
+                    animate="visible"
+                    custom={elementIndex++}
+                    id="setting-velocity-search-layout-concept"
+                    onClick={() => triggerVelocityFeatureToggle('searchLayoutConcept', !draftSettings.searchLayoutConcept)}
+                    className="settings-block-card rounded-[6px] bg-white dark:bg-[#2c3037] shadow-xs px-4 py-3 sm:py-3.5 flex items-center justify-between gap-4 cursor-pointer hover:bg-black/[0.02] dark:hover:bg-[#363b43] transition-colors border-none"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                      <div className="w-9 h-9 flex items-center justify-center shrink-0 text-[#0078d4] dark:text-[#4cc2ff]">
+                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                          <circle cx="8" cy="10" r="2.5" />
+                          <path d="M5 16c.8-1.7 5.2-1.7 6 0M14 9h4M14 13h4M14 17h2" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div id="search-layout-concept-label" className="font-normal text-sm text-[#111827] dark:text-white flex flex-wrap items-center gap-2">
+                          <span>SearchLayoutConcept</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-[6px] uppercase tracking-wider bg-[#0078d4]/10 dark:bg-[#4cc2ff]/20 text-[#0078d4] dark:text-[#4cc2ff] font-semibold">Vive</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-[6px] font-mono bg-black/5 dark:bg-white/10 text-[#6B7280] dark:text-[#9CA3AF]">ID: {getViveFeatureId('searchLayoutConcept')}</span>
+                        </div>
+                        <p id="search-layout-concept-description" className="mt-1 text-xs leading-relaxed text-[#6B7280] dark:text-[#9CA3AF]">
+                          Try the redesigned glass search panel with suggested content and a focused results layout.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      id="toggle-search-layout-concept"
+                      type="button"
+                      role="switch"
+                      aria-labelledby="search-layout-concept-label"
+                      aria-describedby="search-layout-concept-description"
+                      aria-checked={draftSettings.searchLayoutConcept}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        triggerVelocityFeatureToggle('searchLayoutConcept', !draftSettings.searchLayoutConcept);
                       }}
                       className="toggle-switch-btn focus:outline-none shrink-0 border-none"
                     >
