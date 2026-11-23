@@ -201,7 +201,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
             initial="initial"
             animate="animate"
             exit="exit"
-            className={`fluent-modal-dialog relative w-full ${settings.searchLayoutConcept ? 'max-w-[860px] sm:max-w-[920px] min-h-[min(580px,calc(100vh-32px))] bg-[#172536]/90 dark:bg-[#172536]/90 border border-white/15 rounded-[10px] p-4 sm:p-6 backdrop-blur-2xl shadow-[0_28px_90px_rgba(0,0,0,0.48)] text-white' : 'max-w-[440px] sm:max-w-[480px] bg-white dark:bg-[#202020] border border-black/[0.08] dark:border-white/[0.08] rounded-[10px] p-4 sm:p-5 shadow-[0_24px_48px_rgba(0,0,0,0.22),0_2px_6px_rgba(0,0,0,0.08)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.7),0_2px_6px_rgba(255,255,255,0.04)] text-[#111827] dark:text-[#FFFFFF]'} overflow-hidden z-10 my-auto max-h-[calc(100vh-32px)] flex flex-col`}
+            className={`fluent-modal-dialog relative w-full ${settings.searchLayoutConcept ? `max-w-[860px] sm:max-w-[920px] min-h-[min(580px,calc(100vh-32px))] ${settings.theme === 'light' ? 'bg-white/95 border-black/10 text-[#172033] shadow-[0_28px_90px_rgba(15,23,42,0.2)]' : 'bg-[#172536]/90 border-white/15 text-white shadow-[0_28px_90px_rgba(0,0,0,0.48)]'} rounded-[10px] p-4 sm:p-6 backdrop-blur-2xl` : 'max-w-[440px] sm:max-w-[480px] bg-white dark:bg-[#202020] border border-black/[0.08] dark:border-white/[0.08] rounded-[10px] p-4 sm:p-5 shadow-[0_24px_48px_rgba(0,0,0,0.22),0_2px_6px_rgba(0,0,0,0.08)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.7),0_2px_6px_rgba(255,255,255,0.04)] text-[#111827] dark:text-[#FFFFFF]'} overflow-hidden z-10 my-auto max-h-[calc(100vh-32px)] flex flex-col`}
           >
             {viewMode === 'settings' ? (
               /* View 2: Search Settings Menu (Without navigating to Settings tab) */
@@ -512,51 +512,51 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
                 {/* Dynamic Content Area */}
                 {!query ? (
                   settings.searchLayoutConcept ? (
-                    <div className="mt-5 grid min-h-0 flex-1 grid-cols-1 gap-5 overflow-y-auto sm:grid-cols-[220px_minmax(0,1fr)] sm:overflow-hidden">
-                      <aside className="border-white/10 sm:border-r sm:pr-4" aria-label="Suggested destinations">
-                        <h2 className="mb-3 text-xs font-semibold text-white/75">Suggested</h2>
+                    <div className={`mt-5 grid min-h-0 flex-1 grid-cols-1 gap-5 overflow-y-auto sm:grid-cols-[220px_minmax(0,1fr)] sm:overflow-hidden ${settings.theme === 'light' ? 'text-[#172033]' : 'text-white'}`}>
+                      <aside className={`${settings.theme === 'light' ? 'border-black/10 sm:border-r' : 'border-white/10 sm:border-r'} sm:pr-4`} aria-label="Suggested destinations">
+                        <h2 className={`mb-3 text-xs font-semibold ${settings.theme === 'light' ? 'text-slate-600' : 'text-white/75'}`}>Suggested</h2>
                         <div className="flex flex-col gap-1">
                           {CATEGORY_ITEMS.map((item) => {
                             const IconComponent = item.icon;
                             return (
-                              <button key={item.id} type="button" onClick={() => { navigate(item.route); onClose(); }} className="flex items-center gap-3 rounded-md px-2.5 py-2.5 text-left text-[13px] text-white/90 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
-                                <span className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-sky-300"><IconComponent className="size-4" /></span>
+                              <button key={item.id} type="button" onClick={() => { navigate(item.route); onClose(); }} className={`flex items-center gap-3 rounded-md px-2.5 py-2.5 text-left text-[13px] ${settings.theme === 'light' ? 'text-slate-700 hover:bg-slate-900/5' : 'text-white/90 hover:bg-white/10'} transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400`}>
+                                <span className={`flex size-8 items-center justify-center rounded-lg ${settings.theme === 'light' ? 'bg-sky-100 text-sky-700' : 'bg-white/10 text-sky-300'}`}><IconComponent className="size-4" /></span>
                                 <span>{item.title}</span>
                               </button>
                             );
                           })}
                           {SETTINGS_SHORTCUTS.slice(0, 4).map((item) => (
-                            <button key={item.id} type="button" onClick={() => { navigate('/settings'); onClose(); }} className="flex items-center gap-3 rounded-md px-2.5 py-2.5 text-left text-[13px] text-white/90 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
-                              <span className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-sky-300"><SettingsIcon className="size-4" /></span>
+                            <button key={item.id} type="button" onClick={() => { navigate('/settings'); onClose(); }} className={`flex items-center gap-3 rounded-md px-2.5 py-2.5 text-left text-[13px] ${settings.theme === 'light' ? 'text-slate-700 hover:bg-slate-900/5' : 'text-white/90 hover:bg-white/10'} transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400`}>
+                              <span className={`flex size-8 items-center justify-center rounded-lg ${settings.theme === 'light' ? 'bg-sky-100 text-sky-700' : 'bg-white/10 text-sky-300'}`}><SettingsIcon className="size-4" /></span>
                               <span className="truncate">{item.title}</span>
                             </button>
                           ))}
                         </div>
                       </aside>
                       <section className="min-w-0 overflow-y-auto pr-1" aria-label="Search suggestions">
-                        <div className="mb-3 flex items-center justify-between text-xs font-semibold text-white/80">
-                          <span>Today</span><span className="text-white/45">Discover on Sparkle</span>
+                        <div className={`mb-3 flex items-center justify-between text-xs font-semibold ${settings.theme === 'light' ? 'text-slate-700' : 'text-white/80'}`}>
+                          <span>Today</span><span className={settings.theme === 'light' ? 'text-slate-500' : 'text-white/45'}>Discover on Sparkle</span>
                         </div>
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           {NEWS_DATA.slice(0, 1).map((item) => (
-                            <button key={item.id} type="button" onClick={() => { navigate(`/news/${item.slug}`); onClose(); }} className="group relative min-h-[190px] overflow-hidden rounded-lg border border-white/10 bg-white/10 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:col-span-2">
+                            <button key={item.id} type="button" onClick={() => { navigate(`/news/${item.slug}`); onClose(); }} className={`group relative min-h-[190px] overflow-hidden rounded-lg border text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:col-span-2 ${settings.theme === 'light' ? 'border-black/10 bg-slate-100' : 'border-white/10 bg-white/10'}`}>
                               <img src={item.coverImage} alt="" className="absolute inset-0 size-full object-cover opacity-75 transition-transform duration-300 group-hover:scale-[1.03]" />
                               <span className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/10 to-transparent" />
                               <span className="absolute bottom-4 left-4 right-4 text-lg font-semibold text-white">{item.title}</span>
                             </button>
                           ))}
                           {NEWS_DATA.slice(1, 3).map((item) => (
-                            <button key={item.id} type="button" onClick={() => { navigate(`/news/${item.slug}`); onClose(); }} className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.07] text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+                            <button key={item.id} type="button" onClick={() => { navigate(`/news/${item.slug}`); onClose(); }} className={`overflow-hidden rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${settings.theme === 'light' ? 'border-black/10 bg-slate-50 hover:bg-slate-100' : 'border-white/10 bg-white/[0.07] hover:bg-white/10'}`}>
                               <img src={item.coverImage} alt="" className="h-24 w-full object-cover" />
-                              <span className="block p-3 text-xs font-medium text-white/90 line-clamp-2">{item.title}</span>
+                              <span className={`block p-3 text-xs font-medium line-clamp-2 ${settings.theme === 'light' ? 'text-slate-700' : 'text-white/90'}`}>{item.title}</span>
                             </button>
                           ))}
                         </div>
-                        <div className="mt-4 rounded-lg border border-white/[0.08] bg-white/[0.06] p-3.5">
-                          <div className="mb-2 text-xs font-semibold text-white/90">Popular searches</div>
+                        <div className={`mt-4 rounded-lg border p-3.5 ${settings.theme === 'light' ? 'border-black/10 bg-slate-100/80' : 'border-white/[0.08] bg-white/[0.06]'}`}>
+                          <div className={`mb-2 text-xs font-semibold ${settings.theme === 'light' ? 'text-slate-800' : 'text-white/90'}`}>Popular searches</div>
                           <div className="flex flex-wrap gap-2">
                             {['Live TV', 'News', 'Sports', 'Weather'].map((term) => (
-                              <button key={term} type="button" onClick={() => setQuery(term)} className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-xs text-white/85 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">{term}</button>
+                              <button key={term} type="button" onClick={() => setQuery(term)} className={`rounded-full border px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${settings.theme === 'light' ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' : 'border-white/10 bg-white/[0.08] text-white/85 hover:bg-white/15'}`}>{term}</button>
                             ))}
                           </div>
                         </div>
@@ -572,7 +572,7 @@ export const SpotlightModal: React.FC<SpotlightModalProps> = ({
                 ) : (
                   <>
                     {settings.searchLayoutConcept && (
-                      <nav aria-label="Search result categories" className="mt-4 flex items-center gap-1 border-b border-white/10 px-1 text-[13px] text-white/75">
+                      <nav aria-label="Search result categories" className={`mt-4 flex items-center gap-1 border-b px-1 text-[13px] ${settings.theme === 'light' ? 'border-black/10 text-slate-600' : 'border-white/10 text-white/75'}`} >
                         <button type="button" onClick={() => setActiveTab('all')} className={`border-b-2 px-3 py-2.5 ${activeTab === 'all' ? 'border-sky-400 text-white' : 'border-transparent hover:text-white'}`}>All</button>
                         <button type="button" onClick={() => setActiveTab('channels')} className={`border-b-2 px-3 py-2.5 ${activeTab === 'channels' ? 'border-sky-400 text-white' : 'border-transparent hover:text-white'}`}>Apps</button>
                         <button type="button" onClick={() => setActiveTab('news')} className={`border-b-2 px-3 py-2.5 ${activeTab === 'news' ? 'border-sky-400 text-white' : 'border-transparent hover:text-white'}`}>Documents</button>
