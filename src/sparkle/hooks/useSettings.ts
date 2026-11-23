@@ -49,6 +49,7 @@ export interface SystemSettings {
   triangleExperimentVersion?: number;
   tabbedSparkle: boolean;
   windowsMode: boolean;
+  startLayoutConcept: boolean;
   floatBar: boolean;
   floatBarVersion?: number;
   showDesktopSearch: boolean;
@@ -122,6 +123,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   triangleExperimentVersion: 1,
   tabbedSparkle: false,
   windowsMode: false,
+  startLayoutConcept: false,
   floatBar: true,
   floatBarVersion: 1,
   showDesktopSearch: true,

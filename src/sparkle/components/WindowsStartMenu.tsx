@@ -53,6 +53,7 @@ import { NEWS_DATA } from '../data/news';
 import { START_APPS } from '../data/startApps';
 import { usePinState, pinActions, isRoutePinnedToTaskbar } from '../services/pinStore';
 import { Channel } from '../types';
+import { StartLayoutConcept } from './StartLayoutConcept';
 
 export interface StartMenuAppItem {
   id: string;
@@ -263,6 +264,15 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
   const pinnedEntries = useMemo(
     () => reconcileStartLayout(savedLayout, startPinnedApps),
     [savedLayout, startPinnedApps]
+  );
+
+  const conceptPinnedApps = useMemo(
+    () => pinnedEntries.flatMap((entry) =>
+      entry.type === 'app'
+        ? [appById.get(entry.appId)].filter(Boolean)
+        : entry.appIds.map((id) => appById.get(id)).filter(Boolean)
+    ),
+    [pinnedEntries, appById]
   );
 
   const commitStartLayout = (nextEntries: StartPinnedEntry[]) => {
@@ -602,8 +612,43 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                   WebkitBackdropFilter: 'blur(42px) saturate(180%)',
                   zoom: uiScaleMult,
                 }}
-                className="pointer-events-auto w-full max-w-[620px] max-h-[calc(100vh-76px)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-none flex flex-col overflow-hidden select-none text-[#111827] dark:text-white"
+                className={`pointer-events-auto w-full ${settings.startLayoutConcept ? 'max-w-[872px] min-h-[440px] h-[min(686px,calc(100vh-76px))]' : 'max-w-[620px]'} max-h-[calc(100vh-76px)] rounded-[12px] border border-black/10 dark:border-white/[0.12] shadow-none flex flex-col overflow-hidden select-none text-[#111827] dark:text-white`}
               >
+          {settings.startLayoutConcept ? (
+            <StartLayoutConcept
+              isLightMode={isLightMode}
+              accountLabel={accountLabel}
+              apps={conceptPinnedApps}
+              allApps={pinnedApps}
+              recommendedItems={recommendedItems}
+              query={query}
+              searchInputRef={searchInputRef}
+              onQueryChange={setQuery}
+              onLaunchApp={handleLaunchApp}
+              onOpenSettings={() => {
+                onLaunchRoute('/settings');
+                onClose();
+              }}
+              onOpenFileExplorer={() => {
+                onLaunchRoute('/file-explorer');
+                onClose();
+              }}
+              onOpenGallery={() => {
+                onLaunchRoute('/gallery');
+                onClose();
+              }}
+              onOpenAccount={() => {
+                onLaunchRoute('/auth');
+                onClose();
+              }}
+              onExitSparkle={() => {
+                updateSetting('windowsMode', false);
+                onClose();
+              }}
+              onRestart={() => window.location.reload()}
+            />
+          ) : (
+          <>
           {/* Search Bar */}
           <div className="px-6 pt-5 pb-3 shrink-0">
             <form
@@ -1094,6 +1139,8 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
               </div>
             </div>
           </div>
+          </>
+          )}
 
           {/* Open Start Folder Modal Overlay */}
           <AnimatePresence>

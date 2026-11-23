@@ -48,6 +48,11 @@ const VIVE_FEATURE_DEFS: ViveFeatureDefinition[] = [
     description: 'Displays an animated video boot screen during startup.',
   },
   {
+    key: 'startLayoutConcept',
+    name: 'StartLayoutConcept',
+    description: 'Reimagines the Start menu with pinned apps, a weather and clock panel, and suggested apps.',
+  },
+  {
     key: 'floatBar',
     name: 'FloatBar',
     description: 'Floats the SparkleOS Mode taskbar with rounded corners and snaps it back to screen corners when a window is maximized.',
@@ -64,6 +69,7 @@ const FALLBACK_RANDOM_IDS: Record<string, string> = {
   useFlumojs: '84920156',
   dynamicSidebarIcons: '92047183',
   animatedBootScreen: '36481927',
+  startLayoutConcept: '84627139',
   floatBar: '61938472',
 };
 
