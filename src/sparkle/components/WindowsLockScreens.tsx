@@ -96,18 +96,19 @@ export function WindowsLockScreens({ onUnlock, wallpaperUrl }: WindowsLockScreen
           </div>
         </button>
       ) : (
-        <div
-          className="absolute inset-0 flex items-center justify-center bg-cover bg-center px-5"
-          style={{
-            backgroundImage: `linear-gradient(rgba(11,18,8,.28), rgba(11,18,8,.42)), url("${wallpaperUrl}")`,
-          }}
-        >
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden px-5">
+          <div
+            aria-hidden="true"
+            className="absolute inset-[-16px] bg-cover bg-center blur-[10px]"
+            style={{ backgroundImage: `url("${wallpaperUrl}")` }}
+          />
+          <div aria-hidden="true" className="absolute inset-0 bg-black/35" />
           <form
             onSubmit={unlock}
             className="flex w-full max-w-[340px] flex-col items-center text-center"
           >
-            <div className="mb-3 flex size-[88px] items-center justify-center rounded-full bg-white/25 shadow-lg ring-1 ring-white/30 backdrop-blur-sm">
-              <UserRound className="size-12 stroke-[1.35]" />
+            <div className="mb-3 flex size-[104px] items-center justify-center rounded-full bg-white/25 shadow-lg ring-1 ring-white/30 backdrop-blur-sm">
+              <UserRound className="size-14 stroke-[1.35]" />
             </div>
             <h1 className="text-[25px] font-light tracking-wide drop-shadow">Sparkle User</h1>
             <label htmlFor="windows-signin-password" className="sr-only">
@@ -122,7 +123,7 @@ export function WindowsLockScreens({ onUnlock, wallpaperUrl }: WindowsLockScreen
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Mật khẩu"
                 autoComplete="current-password"
-                className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-gray-500"
+                className="min-w-0 flex-1 bg-[#ffffff] px-3 text-sm text-gray-800 outline-none placeholder:text-gray-500"
               />
               <button
                 type="submit"

@@ -67,7 +67,6 @@ import { WindowFrame, type AppWindowState } from './components/WindowFrame';
 import { WindowsStartMenu } from './components/WindowsStartMenu';
 import { WindowsLockScreens } from './components/WindowsLockScreens';
 import { WindowsTaskbar } from './components/WindowsTaskbar';
-import { SparkleOsTopbar } from './components/SparkleOsTopbar';
 import { WindowsContextMenu } from './components/WindowsContextMenu';
 import { DirectCommandFlyout } from './components/DirectCommandFlyout';
 import { DesktopSearchBox } from './components/DesktopSearchBox';
@@ -1933,26 +1932,9 @@ export default function App() {
 
       </div>
 
-      {/* Sparkle OS Topbar, Start Menu & Bottom Taskbar when Windows Mode is active */}
+      {/* Start Menu & Bottom Taskbar when Windows Mode is active */}
       {isWindowsMode && (
         <>
-          <SparkleOsTopbar
-            tabs={tabs}
-            activeTabId={activeTabId}
-            windowStates={windowStates}
-            channels={channels}
-            onSelectChannel={setCurrentChannel}
-            onLaunchRoute={(route, state) => openOrFocusAppWindow(route, state)}
-            onFocusWindow={focusWindow}
-            onToggleStartMenu={() => {
-              setIsDirectCommandOpen(false);
-              setIsStartMenuOpen((previous) => !previous);
-            }}
-            onOpenContextMenu={(x, y) => {
-              setIsStartMenuOpen(false);
-              setDesktopContextMenu({ x, y });
-            }}
-          />
           <WindowsStartMenu
             isOpen={isStartMenuOpen}
             onClose={() => setIsStartMenuOpen(false)}
