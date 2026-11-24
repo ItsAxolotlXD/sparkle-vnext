@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, CornerDownLeft, Trash2, Sparkles, ChevronRight } from 'lucide-react';
+import { X, CornerDownLeft, Trash2, ChevronRight } from 'lucide-react';
 import { useSettings, getTaskbarHeightPx, SystemSettings, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
 import { getViveFeatures, findViveFeatureById } from '../utils/viveFeatures';
 import { showAppToast } from '../utils/toast';
@@ -447,16 +447,8 @@ export const DirectCommandFlyout: React.FC<DirectCommandFlyoutProps> = ({ isOpen
             <header className={`flex h-12 shrink-0 items-center justify-between border-b px-4 ${
               isLightMode ? 'border-black/10' : 'border-white/10'
             }`}>
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className={`flex size-7 items-center justify-center rounded-lg ${
-                  isLightMode ? 'bg-[#e8f1fb] text-[#1769aa]' : 'bg-white/10 text-[#8cc8ff]'
-                }`}>
-                  <Sparkles className="size-4" aria-hidden="true" />
-                </span>
-                <div className="min-w-0">
-                  <h2 id="direct-command-title" className="truncate text-[13px] font-semibold">Direct Command</h2>
-                  <p className={`text-[10px] ${isLightMode ? 'text-black/50' : 'text-white/50'}`}>Sparkle assistant</p>
-                </div>
+              <div className="flex min-w-0 items-center">
+                <h2 id="direct-command-title" className="truncate text-[13px] font-semibold">Preview</h2>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -519,10 +511,10 @@ export const DirectCommandFlyout: React.FC<DirectCommandFlyoutProps> = ({ isOpen
                             setInputValue(suggestion.insertText);
                             inputRef.current?.focus();
                           }}
-                          className={`group flex w-full items-center justify-between gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+                          className={`group flex w-full items-center justify-between gap-3 rounded-xl px-3.5 py-3 text-left transition-colors ${
                             isLightMode
-                              ? 'border-black/[0.08] bg-white hover:border-[#83b8e8] hover:bg-[#f8fbff]'
-                              : 'border-white/[0.09] bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]'
+                              ? 'bg-white hover:bg-[#f8fbff]'
+                              : 'bg-white/[0.04] hover:bg-white/[0.08]'
                           }`}
                         >
                           <span className="min-w-0">
@@ -618,8 +610,8 @@ export const DirectCommandFlyout: React.FC<DirectCommandFlyoutProps> = ({ isOpen
               }}
               className={`shrink-0 border-t px-4 pb-3 pt-3 ${isLightMode ? 'border-black/10 bg-[#f7f7f8]' : 'border-white/10 bg-[#202124]'}`}
             >
-              <div className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm ${
-                isLightMode ? 'border-black/[0.12] bg-white focus-within:border-[#79aee0]' : 'border-white/[0.12] bg-white/[0.06] focus-within:border-[#70aee5]'
+              <div className={`flex min-h-12 items-center gap-2 rounded-2xl px-3 py-2 shadow-sm ${
+                isLightMode ? 'bg-white' : 'bg-white/[0.06]'
               }`}>
                 <input
                   ref={inputRef}
