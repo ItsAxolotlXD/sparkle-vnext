@@ -9,6 +9,7 @@ import {
   Power,
   RotateCcw,
   LogOut,
+  LockKeyhole,
   Monitor,
   Settings as SettingsIcon,
   User,
@@ -71,6 +72,7 @@ interface WindowsStartMenuProps {
   channels: Channel[];
   onSelectChannel: (channel: Channel) => void;
   onRestartOobe?: () => void;
+  onLock?: () => void;
   isTaskbarFloating?: boolean;
 }
 
@@ -184,6 +186,7 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
   channels,
   onSelectChannel,
   onRestartOobe,
+  onLock,
   isTaskbarFloating = false,
 }) => {
   const accountLabel = getAccountLabel(useAuthSession());
@@ -1099,6 +1102,19 @@ export const WindowsStartMenu: React.FC<WindowsStartMenuProps> = ({
                       }}
                       className="absolute right-0 bottom-full mb-2 w-[210px] p-1.5 rounded-[8px] border border-black/10 dark:border-white/12 shadow-2xl space-y-0.5 z-50"
                     >
+                      {onLock && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            onLock();
+                          }}
+                          className="w-full h-8 px-2.5 rounded-[5px] flex items-center gap-2.5 text-[12.5px] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] cursor-pointer text-left border-none"
+                        >
+                          <LockKeyhole className="w-3.5 h-3.5 text-[#0078d4] dark:text-[#4cc2ff]" />
+                          <span>Lock</span>
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => {

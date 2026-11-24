@@ -65,6 +65,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { type AppTab } from './components/SparkleTabBar';
 import { WindowFrame, type AppWindowState } from './components/WindowFrame';
 import { WindowsStartMenu } from './components/WindowsStartMenu';
+import { WindowsLockScreens } from './components/WindowsLockScreens';
 import { WindowsTaskbar } from './components/WindowsTaskbar';
 import { SparkleOsTopbar } from './components/SparkleOsTopbar';
 import { WindowsContextMenu } from './components/WindowsContextMenu';
@@ -264,6 +265,7 @@ export default function App() {
   const taskbarHeight = getTaskbarHeightPx(settings.taskbarScale);
   const topbarHeight = getTopbarHeightPx(settings.taskbarScale, Boolean(settings.floatBar));
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
+  const [isWindowsLocked, setIsWindowsLocked] = useState(false);
   const [isDirectCommandOpen, setIsDirectCommandOpen] = useState(false);
   const [desktopContextMenu, setDesktopContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [desktopShortcuts, setDesktopShortcuts] = useState<Array<{ route: string; title: string; x: number; y: number }>>(() => {
@@ -344,6 +346,7 @@ export default function App() {
   useEffect(() => {
     if (!isWindowsMode) {
       setIsStartMenuOpen(false);
+      setIsWindowsLocked(false);
       return;
     }
     setWindowStates((prev) => {
@@ -1957,8 +1960,10 @@ export default function App() {
             channels={channels}
             onSelectChannel={setCurrentChannel}
             onRestartOobe={handleRestartOobe}
+            onLock={() => setIsWindowsLocked(true)}
             isTaskbarFloating={isTaskbarFloating}
           />
+          {isWindowsLocked && <WindowsLockScreens onUnlock={() => setIsWindowsLocked(false)} />}
           <WindowsTaskbar
             tabs={tabs}
             activeTabId={activeTabId}
