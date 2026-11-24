@@ -60,6 +60,7 @@ import { NEWS_DATA } from './data/news';
 import { Channel, NewsArticle } from './types';
 import { useSettings, getTaskbarHeightPx, getTopbarHeightPx } from './hooks/useSettings';
 import { getWallpaperById } from './constants/wallpapers';
+import { loadCustomWallpaper, saveCustomWallpaper } from './utils/customWallpaper';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { type AppTab } from './components/SparkleTabBar';
 import { WindowFrame, type AppWindowState } from './components/WindowFrame';
@@ -116,6 +117,50 @@ export default function App() {
       return getWallpaperById('spotlight-collection').image;
     }
   });
+  const [customWallpaperUrl, setCustomWallpaperUrl] = useState<string | null>(null);
+  const wallpaperInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (settings.windowsWallpaper !== 'custom-upload') {
+      setCustomWallpaperUrl(null);
+      return;
+    }
+    let active = true;
+    let objectUrl: string | null = null;
+    void loadCustomWallpaper().then((file) => {
+      if (!active || !file) return;
+      objectUrl = URL.createObjectURL(file);
+      setCustomWallpaperUrl(objectUrl);
+    }).catch(() => {
+      showAppToast('Không thể tải hình nền tùy chỉnh đã lưu', { appName: 'Windows' });
+    });
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [settings.windowsWallpaper]);
+
+  const handleWallpaperFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/bmp', 'image/avif'].includes(file.type)) {
+      showAppToast('Vui lòng chọn ảnh PNG, JPG, JPEG, WEBP, GIF, BMP hoặc AVIF', { appName: 'Windows' });
+      return;
+    }
+    try {
+      await saveCustomWallpaper(file);
+      const nextUrl = URL.createObjectURL(file);
+      setCustomWallpaperUrl((currentUrl) => {
+        if (currentUrl) URL.revokeObjectURL(currentUrl);
+        return nextUrl;
+      });
+      updateSetting('windowsWallpaper', 'custom-upload');
+      showAppToast('Đã cập nhật hình nền', { appName: 'Windows' });
+    } catch {
+      showAppToast('Không thể lưu ảnh này làm hình nền', { appName: 'Windows' });
+    }
+  };
 
   useEffect(() => {
     if (settings.windowsWallpaper !== 'spotlight-collection') return;
@@ -1595,6 +1640,14 @@ export default function App() {
   return (
     <NativeKeyboardProvider>
       <NotesProvider>
+      <input
+        ref={wallpaperInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif"
+        className="sr-only"
+        aria-label="Chọn ảnh hình nền"
+        onChange={handleWallpaperFile}
+      />
       <div
         data-immersive-sidebar={settings.immersiveSidebar}
         data-sidebar-position={settings.sidebarPosition}
@@ -1615,7 +1668,7 @@ export default function App() {
         style={
           isWindowsMode
             ? {
-                backgroundImage: `url('${settings.windowsWallpaper === 'spotlight-collection' ? spotlightWallpaperUrl : getWallpaperById(settings.windowsWallpaper).image}')`,
+                backgroundImage: `url('${settings.windowsWallpaper === 'custom-upload' && customWallpaperUrl ? customWallpaperUrl : settings.windowsWallpaper === 'spotlight-collection' ? spotlightWallpaperUrl : getWallpaperById(settings.windowsWallpaper).image}')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -1986,7 +2039,7 @@ export default function App() {
                     id: 'desk-background',
                     label: 'Change background',
                     icon: <Palette className="w-4 h-4" />,
-                    onSelect: () => openOrFocusAppWindow('/pc-settings/personalization'),
+                    onSelect: () => wallpaperInputRef.current?.click(),
                   },
                   {
                     id: 'desk-personalize',

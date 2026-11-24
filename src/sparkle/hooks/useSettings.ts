@@ -273,7 +273,7 @@ export const getStoredSettings = (): SystemSettings => {
         floatBarVersion: 1,
         showDesktopSearch: typeof parsed.showDesktopSearch === 'boolean' ? parsed.showDesktopSearch : true,
         windowsWallpaper:
-          parsed.windowsWallpaperVersion === 2 && WINDOWS_WALLPAPERS.some((w) => w.id === parsed.windowsWallpaper)
+          parsed.windowsWallpaperVersion === 2 && (parsed.windowsWallpaper === 'custom-upload' || WINDOWS_WALLPAPERS.some((w) => w.id === parsed.windowsWallpaper))
             ? parsed.windowsWallpaper
             : theme === 'dark'
             ? 'vnext-flow-dark'
