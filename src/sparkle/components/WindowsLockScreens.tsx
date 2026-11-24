@@ -12,14 +12,10 @@ import {
 
 type WindowsLockScreensProps = {
   onUnlock: () => void;
+  wallpaperUrl: string;
 };
 
-const LOCK_WALLPAPER =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-osbI7IpSc8lLq29ybwTKRJxb2DnGdt.png";
-const SIGN_IN_WALLPAPER =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-bd8u990aN3OIoSJv5rjCI3Do8MP78v.png";
-
-export function WindowsLockScreens({ onUnlock }: WindowsLockScreensProps) {
+export function WindowsLockScreens({ onUnlock, wallpaperUrl }: WindowsLockScreensProps) {
   const [screen, setScreen] = useState<"lock" | "signin">("lock");
   const [password, setPassword] = useState("");
   const [now, setNow] = useState(() => new Date());
@@ -65,7 +61,7 @@ export function WindowsLockScreens({ onUnlock }: WindowsLockScreensProps) {
           onClick={() => setScreen("signin")}
           className="absolute inset-0 flex cursor-pointer flex-col justify-end bg-cover bg-center text-left outline-none"
           style={{
-            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.08) 42%, rgba(0,0,0,.48) 100%), url("${LOCK_WALLPAPER}")`,
+            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.08) 42%, rgba(0,0,0,.48) 100%), url("${wallpaperUrl}")`,
           }}
           aria-label="Mở màn hình đăng nhập"
         >
@@ -103,7 +99,7 @@ export function WindowsLockScreens({ onUnlock }: WindowsLockScreensProps) {
         <div
           className="absolute inset-0 flex items-center justify-center bg-cover bg-center px-5"
           style={{
-            backgroundImage: `linear-gradient(rgba(11,18,8,.28), rgba(11,18,8,.42)), url("${SIGN_IN_WALLPAPER}")`,
+            backgroundImage: `linear-gradient(rgba(11,18,8,.28), rgba(11,18,8,.42)), url("${wallpaperUrl}")`,
           }}
         >
           <form

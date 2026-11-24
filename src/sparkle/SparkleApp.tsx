@@ -1963,7 +1963,18 @@ export default function App() {
             onLock={() => setIsWindowsLocked(true)}
             isTaskbarFloating={isTaskbarFloating}
           />
-          {isWindowsLocked && <WindowsLockScreens onUnlock={() => setIsWindowsLocked(false)} />}
+          {isWindowsLocked && (
+            <WindowsLockScreens
+              wallpaperUrl={
+                settings.windowsWallpaper === 'custom-upload' && customWallpaperUrl
+                  ? customWallpaperUrl
+                  : settings.windowsWallpaper === 'spotlight-collection'
+                    ? spotlightWallpaperUrl
+                    : getWallpaperById(settings.windowsWallpaper).image
+              }
+              onUnlock={() => setIsWindowsLocked(false)}
+            />
+          )}
           <WindowsTaskbar
             tabs={tabs}
             activeTabId={activeTabId}
