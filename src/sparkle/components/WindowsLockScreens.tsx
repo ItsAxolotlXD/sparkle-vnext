@@ -105,7 +105,7 @@ export function WindowsLockScreens({ onUnlock, wallpaperUrl }: WindowsLockScreen
           <div aria-hidden="true" className="absolute inset-0 bg-black/35" />
           <form
             onSubmit={unlock}
-            className="flex w-full max-w-[340px] flex-col items-center text-center"
+            className="relative z-10 flex w-full max-w-[340px] flex-col items-center text-center"
           >
             <div className="mb-3 flex size-[104px] items-center justify-center rounded-full bg-white/25 shadow-lg ring-1 ring-white/30 backdrop-blur-sm">
               <UserRound className="size-14 stroke-[1.35]" />
