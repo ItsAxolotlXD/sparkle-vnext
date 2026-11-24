@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, CornerDownLeft, Trash2 } from 'lucide-react';
+import { X, CornerDownLeft, Trash2, Sparkles, ChevronRight } from 'lucide-react';
 import { useSettings, getTaskbarHeightPx, SystemSettings, FLOAT_BAR_BOTTOM_GAP_PX } from '../hooks/useSettings';
 import { getViveFeatures, findViveFeatureById } from '../utils/viveFeatures';
 import { showAppToast } from '../utils/toast';
@@ -406,10 +406,9 @@ export const DirectCommandFlyout: React.FC<DirectCommandFlyoutProps> = ({ isOpen
       {isOpen && (
         <motion.div
           key="windows-direct-command-flyout-wrapper"
-          initial={settings.reduceAllMotion ? false : { x: '110%', opacity: 0 }}
+          initial={settings.reduceAllMotion ? false : { x: '100%' }}
           animate={{
             x: 0,
-            opacity: 1,
             transition: settings.reduceAllMotion
               ? { duration: 0 }
               : { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
@@ -417,211 +416,255 @@ export const DirectCommandFlyout: React.FC<DirectCommandFlyoutProps> = ({ isOpen
           exit={
             settings.reduceAllMotion
               ? undefined
-              : {
-                  x: '110%',
-                  opacity: 0,
-                  transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-                }
+              : { x: '100%', transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } }
           }
           style={{
             zIndex: 9100,
-            paddingBottom: isVerticalTaskbar || isTopTaskbar ? '12px' : `${bottomOffset}px`,
             ...(settings.windowsMode && isVerticalTaskbar
               ? settings.taskbarPosition === 'left'
-                ? { left: `${taskbarHeight + 8}px`, right: 'auto', top: '12px', bottom: '12px' }
-                : { right: `${taskbarHeight + 8}px`, left: 'auto', top: '12px', bottom: '12px' }
+                ? { left: `${taskbarHeight + 8}px` }
+                : { right: `${taskbarHeight + 8}px` }
               : settings.windowsMode && isTopTaskbar
-                ? { top: `${taskbarHeight + 8}px`, bottom: 'auto' }
-                : {}),
+                ? { top: `${taskbarHeight + 8}px` }
+                : settings.windowsMode
+                  ? { bottom: `${bottomOffset}px` }
+                  : {}),
           }}
-          className={`fixed inset-x-0 flex ${isVerticalTaskbar ? 'items-center justify-center' : 'justify-center sm:justify-end'} px-3 pointer-events-none`}
+          className="pointer-events-none fixed inset-y-0 right-0 flex w-full justify-end sm:w-[min(390px,42vw)]"
         >
           <div
             ref={flyoutRef}
             id="windows-direct-command-flyout"
             role="dialog"
-            aria-label="Direct Command"
-            className="pointer-events-auto w-full max-w-[490px] rounded-[14px] border border-black/10 dark:border-white/[0.12] shadow-none overflow-hidden flex flex-col"
+            aria-modal="false"
+            aria-labelledby="direct-command-title"
+            className={`pointer-events-auto flex h-full min-h-0 w-full flex-col overflow-hidden border-l shadow-[-18px_0_48px_rgba(0,0,0,0.18)] ${
+              isLightMode
+                ? 'border-black/10 bg-[#f7f7f8] text-[#242424]'
+                : 'border-white/10 bg-[#202124] text-[#f5f5f5]'
+            }`}
           >
-            {/* Upper Frosted Command Prompt Console Area */}
-            <div
-              style={{
-                backgroundColor: isLightMode ? 'rgba(235, 240, 248, 0.86)' : 'rgba(24, 27, 33, 0.88)',
-                backdropFilter: 'blur(36px) saturate(175%)',
-                WebkitBackdropFilter: 'blur(36px) saturate(175%)',
-              }}
-              className="flex flex-col"
-            >
-              {/* Title Bar Strip */}
-              <div className="flex items-center justify-between px-3.5 py-2 border-b border-black/[0.06] dark:border-white/[0.08]">
-                <div className="flex items-center gap-2 min-w-0">
-                  <img
-                    src="/assets/aistudio/direct_command_6240d59d.png"
-                    alt=""
-                    draggable={false}
-                    className="w-4 h-4 object-contain shrink-0"
-                  />
-                  <span className="text-[12.5px] font-semibold text-[#111827] dark:text-white truncate">
-                    Direct Command
-                  </span>
-                  <span className="text-[10.5px] font-mono px-1.5 py-0.5 rounded-[4px] bg-black/[0.06] dark:bg-white/[0.08] text-black/65 dark:text-white/65">
-                    cmd
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEntries([]);
-                      inputRef.current?.focus();
-                    }}
-                    title="Clear output"
-                    aria-label="Clear output"
-                    className="h-6 px-2 rounded-[5px] flex items-center gap-1 text-[11px] text-black/65 dark:text-white/65 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:text-black dark:hover:text-white transition-colors cursor-pointer border-none bg-transparent"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    <span>Clear</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label="Close Direct Command"
-                    className="w-6 h-6 rounded-[5px] flex items-center justify-center text-black/65 dark:text-white/65 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:text-black dark:hover:text-white transition-colors cursor-pointer border-none bg-transparent"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+            <header className={`flex h-12 shrink-0 items-center justify-between border-b px-4 ${
+              isLightMode ? 'border-black/10' : 'border-white/10'
+            }`}>
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className={`flex size-7 items-center justify-center rounded-lg ${
+                  isLightMode ? 'bg-[#e8f1fb] text-[#1769aa]' : 'bg-white/10 text-[#8cc8ff]'
+                }`}>
+                  <Sparkles className="size-4" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <h2 id="direct-command-title" className="truncate text-[13px] font-semibold">Direct Command</h2>
+                  <p className={`text-[10px] ${isLightMode ? 'text-black/50' : 'text-white/50'}`}>Sparkle assistant</p>
                 </div>
               </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEntries([]);
+                    setInputValue('');
+                    inputRef.current?.focus();
+                  }}
+                  title="Clear conversation"
+                  aria-label="Clear conversation"
+                  className={`flex size-8 items-center justify-center rounded-lg transition-colors ${
+                    isLightMode ? 'text-black/60 hover:bg-black/[0.06]' : 'text-white/65 hover:bg-white/[0.08]'
+                  }`}
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close Direct Command"
+                  className={`flex size-8 items-center justify-center rounded-lg transition-colors ${
+                    isLightMode ? 'text-black/60 hover:bg-black/[0.06]' : 'text-white/65 hover:bg-white/[0.08]'
+                  }`}
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+            </header>
 
-              {/* Console Output Scroll Area */}
-              <div className="px-3.5 py-2.5 h-[260px] sm:h-[290px] overflow-y-auto sidebar-scroller font-mono text-[11.5px] leading-[1.55] space-y-2.5 text-[#111827] dark:text-[#e5e7eb] select-text">
-                {entries.length === 0 ? (
-                  <div className="text-black/45 dark:text-white/45 italic">
-                    Console cleared. Type /help to list available commands.
+            <div className={`sidebar-scroller min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-8 ${
+              isLightMode ? 'bg-[#f7f7f8]' : 'bg-[#202124]'
+            }`}>
+              {!entries.some((entry) => entry.command) ? (
+                <div className="mx-auto flex max-w-sm flex-col items-center text-center">
+                  <div className={`mb-4 flex size-14 items-center justify-center rounded-[18px] ${
+                    isLightMode ? 'bg-gradient-to-br from-[#dcecff] to-[#f1e8ff] text-[#236cb4]' : 'bg-white/10 text-[#9ccaff]'
+                  }`}>
+                    <img
+                      src="/assets/aistudio/direct_command_6240d59d.png"
+                      alt=""
+                      draggable={false}
+                      className="size-9 object-contain"
+                    />
                   </div>
-                ) : (
-                  entries.map((entry) => (
-                    <div key={entry.id} className="space-y-0.5">
-                      {entry.command && (
-                        <div className="flex items-start gap-1.5 font-semibold text-[#111827] dark:text-white">
-                          <span className="text-[#005fb8] dark:text-[#4cc2ff] shrink-0">C:\Sparkle&gt;</span>
-                          <span className="break-all">{entry.command}</span>
-                        </div>
-                      )}
-                      {entry.lines.map((line, idx) => {
-                        const toneClass =
-                          line.tone === 'error'
-                            ? 'text-[#c42b1c] dark:text-[#ff7b89]'
-                            : line.tone === 'success'
-                            ? 'text-[#0f7b0f] dark:text-[#6ccb5f]'
-                            : line.tone === 'accent'
-                            ? 'text-[#005fb8] dark:text-[#4cc2ff] font-semibold'
-                            : line.tone === 'muted'
-                            ? 'text-black/55 dark:text-white/55'
-                            : 'text-[#1f2937] dark:text-[#e5e7eb]';
-
-                        if (line.prefillCommand) {
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                setInputValue(line.prefillCommand!);
-                                inputRef.current?.focus();
-                              }}
-                              className={`block w-full text-left whitespace-pre-wrap break-words rounded-[4px] px-1 -mx-1 py-0.5 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none bg-transparent font-mono ${toneClass}`}
-                            >
-                              {line.text}
-                            </button>
-                          );
-                        }
-                        return (
-                          <div key={idx} className={`whitespace-pre-wrap break-words ${toneClass}`}>
-                            {line.text}
-                          </div>
-                        );
-                      })}
+                  <h3 className="text-[22px] font-semibold tracking-[-0.03em]">Direct Command</h3>
+                  <p className={`mt-1 text-[12px] ${isLightMode ? 'text-black/55' : 'text-white/55'}`}>
+                    Your quick way to control Sparkle.
+                  </p>
+                  <div className="mt-8 w-full text-left">
+                    <p className={`mb-3 text-[11px] font-medium ${isLightMode ? 'text-black/55' : 'text-white/55'}`}>
+                      Try a command
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      {COMMAND_SUGGESTIONS.slice(0, 4).map((suggestion) => (
+                        <button
+                          key={suggestion.syntax}
+                          type="button"
+                          onClick={() => {
+                            setInputValue(suggestion.insertText);
+                            inputRef.current?.focus();
+                          }}
+                          className={`group flex w-full items-center justify-between gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+                            isLightMode
+                              ? 'border-black/[0.08] bg-white hover:border-[#83b8e8] hover:bg-[#f8fbff]'
+                              : 'border-white/[0.09] bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]'
+                          }`}
+                        >
+                          <span className="min-w-0">
+                            <span className={`block font-mono text-[11px] font-semibold ${isLightMode ? 'text-[#1769aa]' : 'text-[#9ccaff]'}`}>
+                              {suggestion.syntax}
+                            </span>
+                            <span className={`mt-1 block text-[11px] leading-relaxed ${isLightMode ? 'text-black/55' : 'text-white/55'}`}>
+                              {suggestion.description}
+                            </span>
+                          </span>
+                          <ChevronRight className={`size-4 shrink-0 transition-transform group-hover:translate-x-0.5 ${isLightMode ? 'text-black/35' : 'text-white/40'}`} aria-hidden="true" />
+                        </button>
+                      ))}
                     </div>
-                  ))
-                )}
-                <div ref={outputEndRef} />
-              </div>
+                  </div>
+                  <p className={`mt-5 text-[10px] leading-relaxed ${isLightMode ? 'text-black/45' : 'text-white/40'}`}>
+                    Commands run on this device. Type <span className="font-mono">/help</span> to see everything available.
+                  </p>
+                </div>
+              ) : (
+                <div className="mx-auto flex max-w-sm flex-col gap-5">
+                  {entries.filter((entry) => entry.command).map((entry) => (
+                    <article key={entry.id} className="flex flex-col gap-2.5">
+                      <div className="flex justify-end">
+                        <p className={`max-w-[90%] rounded-2xl rounded-br-md px-3.5 py-2.5 font-mono text-[12px] ${
+                          isLightMode ? 'bg-[#e6f1fb] text-[#173c5b]' : 'bg-[#24435c] text-[#e8f4ff]'
+                        }`}>
+                          {entry.command}
+                        </p>
+                      </div>
+                      <div className={`flex flex-col gap-1.5 rounded-2xl rounded-bl-md px-3.5 py-3 text-[12px] leading-relaxed ${
+                        isLightMode ? 'bg-white text-[#303030] shadow-sm' : 'bg-white/[0.06] text-[#e8e8e8]'
+                      }`}>
+                        {entry.lines.map((line, index) => {
+                          const toneClass = line.tone === 'error'
+                            ? isLightMode ? 'text-[#b42318]' : 'text-[#ff8b8b]'
+                            : line.tone === 'success'
+                              ? isLightMode ? 'text-[#16733c]' : 'text-[#8bd8a7]'
+                              : line.tone === 'accent'
+                                ? isLightMode ? 'font-semibold text-[#1769aa]' : 'font-semibold text-[#9ccaff]'
+                                : line.tone === 'muted'
+                                  ? isLightMode ? 'text-black/55' : 'text-white/55'
+                                  : '';
+                          if (line.prefillCommand) {
+                            return (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() => {
+                                  setInputValue(line.prefillCommand!);
+                                  inputRef.current?.focus();
+                                }}
+                                className={`-mx-1 rounded-md px-1 text-left transition-colors hover:bg-black/[0.05] ${toneClass}`}
+                              >
+                                {line.text}
+                              </button>
+                            );
+                          }
+                          return <p key={index} className={`whitespace-pre-wrap break-words ${toneClass}`}>{line.text}</p>;
+                        })}
+                      </div>
+                    </article>
+                  ))}
+                  <div ref={outputEndRef} />
+                </div>
+              )}
 
-              {/* Autocomplete Suggestions while typing / */}
               {matchingSuggestions.length > 0 && (
-                <div className="px-2 pb-1.5 pt-1 border-t border-black/[0.06] dark:border-white/[0.07] space-y-0.5">
-                  {matchingSuggestions.map((s) => (
+                <div className="mx-auto mt-4 flex max-w-sm flex-col gap-1">
+                  {matchingSuggestions.map((suggestion) => (
                     <button
-                      key={s.syntax}
+                      key={suggestion.syntax}
                       type="button"
                       onClick={() => {
-                        setInputValue(s.insertText);
+                        setInputValue(suggestion.insertText);
                         inputRef.current?.focus();
                       }}
-                      className="w-full px-2.5 py-1.5 rounded-[6px] flex items-center justify-between gap-3 text-left hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer border-none bg-transparent"
+                      className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left ${
+                        isLightMode ? 'hover:bg-black/[0.05]' : 'hover:bg-white/[0.07]'
+                      }`}
                     >
-                      <span className="font-mono text-[11.5px] font-medium text-[#005fb8] dark:text-[#4cc2ff] truncate">
-                        {s.syntax}
-                      </span>
-                      <span className="text-[11px] text-black/55 dark:text-white/55 truncate shrink-0 max-w-[46%]">
-                        {s.description}
-                      </span>
+                      <span className={`truncate font-mono text-[11px] ${isLightMode ? 'text-[#1769aa]' : 'text-[#9ccaff]'}`}>{suggestion.syntax}</span>
+                      <span className={`truncate text-[10px] ${isLightMode ? 'text-black/50' : 'text-white/50'}`}>{suggestion.description}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
-
-            {/* Bottom Command Prompt Input Strip (matching Search UI strip) */}
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
+              onSubmit={(event) => {
+                event.preventDefault();
                 executeCommand(inputValue);
               }}
-              style={{
-                backgroundColor: isLightMode ? 'rgba(255, 255, 255, 0.96)' : 'rgba(20, 22, 27, 0.96)',
-              }}
-              className="h-[46px] px-3.5 border-t border-black/[0.06] dark:border-white/[0.08] flex items-center gap-2 shrink-0"
+              className={`shrink-0 border-t px-4 pb-3 pt-3 ${isLightMode ? 'border-black/10 bg-[#f7f7f8]' : 'border-white/10 bg-[#202124]'}`}
             >
-              <span className="font-mono text-[12.5px] font-semibold text-[#005fb8] dark:text-[#4cc2ff] shrink-0 select-none">
-                C:\&gt;
-              </span>
-              <input
-                ref={inputRef}
-                id="windows-direct-command-input"
-                type="text"
-                value={inputValue}
-                onChange={(e) => {
-                  setInputValue(e.target.value);
-                  setHistoryIdx(-1);
-                }}
-                onKeyDown={handleKeyDown}
-                placeholder="Type a command (e.g. /help)"
-                autoComplete="off"
-                spellCheck={false}
-                className="flex-1 min-w-0 !bg-transparent font-mono text-[13px] text-[#111827] dark:text-white placeholder-black/50 dark:placeholder-white/50 !outline-none focus:!outline-none !border-none !shadow-none"
-              />
-              {inputValue && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInputValue('');
-                    inputRef.current?.focus();
+              <div className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm ${
+                isLightMode ? 'border-black/[0.12] bg-white focus-within:border-[#79aee0]' : 'border-white/[0.12] bg-white/[0.06] focus-within:border-[#70aee5]'
+              }`}>
+                <input
+                  ref={inputRef}
+                  id="windows-direct-command-input"
+                  type="text"
+                  value={inputValue}
+                  onChange={(event) => {
+                    setInputValue(event.target.value);
+                    setHistoryIdx(-1);
                   }}
-                  aria-label="Clear command"
-                  className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/15 cursor-pointer border-none bg-transparent text-black/60 dark:text-white/70"
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask Direct Command or type /help"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label="Enter a Direct Command"
+                  className={`min-w-0 flex-1 border-0 bg-transparent text-[13px] outline-none focus:ring-0 ${
+                    isLightMode ? 'text-[#242424] placeholder:text-black/45' : 'text-white placeholder:text-white/45'
+                  }`}
+                />
+                {inputValue && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInputValue('');
+                      inputRef.current?.focus();
+                    }}
+                    aria-label="Clear command"
+                    className={`flex size-7 shrink-0 items-center justify-center rounded-full ${isLightMode ? 'text-black/50 hover:bg-black/[0.06]' : 'text-white/55 hover:bg-white/[0.1]'}`}
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  aria-label="Run command"
+                  title="Run command (Enter)"
+                  className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[#1673bb] text-white transition-colors hover:bg-[#0e5f9f] disabled:cursor-not-allowed disabled:opacity-45"
+                  disabled={!inputValue.trim()}
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <CornerDownLeft className="size-4" aria-hidden="true" />
                 </button>
-              )}
-              <button
-                type="submit"
-                aria-label="Run command"
-                title="Run command (Enter)"
-                className="w-7 h-7 rounded-[6px] flex items-center justify-center bg-[#0078d4]/12 dark:bg-[#4cc2ff]/15 hover:bg-[#0078d4]/22 dark:hover:bg-[#4cc2ff]/25 text-[#005fb8] dark:text-[#4cc2ff] transition-colors cursor-pointer border-none shrink-0"
-              >
-                <CornerDownLeft className="w-3.5 h-3.5" />
-              </button>
+              </div>
+              <p className={`mt-2 text-center text-[10px] ${isLightMode ? 'text-black/45' : 'text-white/40'}`}>
+                Direct Command can only change settings available in Sparkle.
+              </p>
             </form>
           </div>
         </motion.div>
